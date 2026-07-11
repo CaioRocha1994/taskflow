@@ -1,11 +1,14 @@
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useState,
+} from "react";
 
 import { DeleteTaskModal } from "./components/DeleteTaskModal/DeleteTaskModal";
 import { Filters } from "./components/Filters/Filters";
 import { Header } from "./components/Header/Header";
 import { KanbanBoard } from "./components/KanbanBoard/KanbanBoard";
-import { TaskModal } from "./components/TaskModal/TaskModal";
 import { TaskDetailsModal } from "./components/TaskDetailsModal/TaskDetailsModal";
+import { TaskModal } from "./components/TaskModal/TaskModal";
 
 import { useTasks } from "./hooks/useTasks";
 
@@ -20,37 +23,49 @@ function App() {
   const {
     tasks,
     taskCounters,
+    canUndo,
     createTask,
     updateTask,
     deleteTask,
     moveTask,
-    resetTasks,
+    undoLastAction,
   } = useTasks();
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] =
+    useState("");
 
   const [statusFilter, setStatusFilter] =
     useState<TaskStatus | "all">("all");
 
-  const [priorityFilter, setPriorityFilter] =
-    useState<TaskPriority | "all">("all");
+  const [
+    priorityFilter,
+    setPriorityFilter,
+  ] = useState<TaskPriority | "all">("all");
 
-  const [isTaskModalOpen, setIsTaskModalOpen] =
-    useState(false);
+  const [
+    isTaskModalOpen,
+    setIsTaskModalOpen,
+  ] = useState(false);
 
-  const [selectedTask, setSelectedTask] =
-    useState<Task | null>(null);
+  const [
+    selectedTask,
+    setSelectedTask,
+  ] = useState<Task | null>(null);
 
-  const [initialTaskStatus, setInitialTaskStatus] =
-    useState<TaskStatus>("backlog");
+  const [
+    initialTaskStatus,
+    setInitialTaskStatus,
+  ] = useState<TaskStatus>("backlog");
 
   const [
     taskPendingDeletion,
     setTaskPendingDeletion,
   ] = useState<Task | null>(null);
 
-  const [taskInDetails, setTaskInDetails] =
-  useState<Task | null>(null);
+  const [
+    taskInDetails,
+    setTaskInDetails,
+  ] = useState<Task | null>(null);
 
   const filteredTasks = useMemo(() => {
     const normalizedSearch = searchTerm
@@ -102,6 +117,7 @@ function App() {
   }
 
   function handleOpenEditModal(task: Task) {
+    setTaskInDetails(null);
     setSelectedTask(task);
     setInitialTaskStatus(task.status);
     setIsTaskModalOpen(true);
@@ -126,6 +142,7 @@ function App() {
   }
 
   function handleDeleteTask(task: Task) {
+    setTaskInDetails(null);
     setTaskPendingDeletion(task);
   }
 
@@ -133,11 +150,15 @@ function App() {
     setTaskPendingDeletion(null);
   }
 
-  function handleConfirmDelete(taskId: string) {
+  function handleConfirmDelete(
+    taskId: string,
+  ) {
     deleteTask(taskId);
   }
 
-  function handleOpenTaskDetails(task: Task) {
+  function handleOpenTaskDetails(
+    task: Task,
+  ) {
     setTaskInDetails(task);
   }
 
@@ -151,9 +172,12 @@ function App() {
     setPriorityFilter("all");
   }
 
-  function handleResetTasks() {
-    resetTasks();
-    handleClearFilters();
+  function handleUndo() {
+    undoLastAction();
+
+    setSelectedTask(null);
+    setTaskPendingDeletion(null);
+    setTaskInDetails(null);
   }
 
   return (
@@ -161,10 +185,11 @@ function App() {
       <Header
         totalTasks={taskCounters.total}
         completedTasks={taskCounters.done}
+        canUndo={canUndo}
         onCreateTask={() =>
           handleOpenCreateModal("backlog")
         }
-        onResetTasks={handleResetTasks}
+        onUndo={handleUndo}
       />
 
       <Filters
@@ -198,7 +223,9 @@ function App() {
       />
 
       <DeleteTaskModal
-        isOpen={Boolean(taskPendingDeletion)}
+        isOpen={Boolean(
+          taskPendingDeletion,
+        )}
         task={taskPendingDeletion}
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}

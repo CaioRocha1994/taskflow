@@ -41,26 +41,42 @@ function normalizeTags(tags: string[]): string[] {
   );
 }
 
+function cloneTasks(tasks: Task[]): Task[] {
+  return tasks.map((task) => ({
+    ...task,
+    tags: [...task.tags],
+  }));
+}
+
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>(
     () => loadTasks() ?? INITIAL_TASKS,
   );
 
+  const [history, setHistory] = useState<Task[][]>([]);
+
   useEffect(() => {
     saveTasks(tasks);
   }, [tasks]);
 
+  function saveCurrentStateToHistory(
+    currentTasks: Task[],
+  ): void {
+    setHistory((currentHistory) => [
+      ...currentHistory,
+      cloneTasks(currentTasks),
+    ]);
+  }
+
   function createTask(
     input: CreateTaskInput,
   ): Task {
-    const currentDate =
-      new Date().toISOString();
+    const currentDate = new Date().toISOString();
 
     const newTask: Task = {
       id: generateTaskId(),
       title: input.title.trim(),
-      description:
-        input.description.trim(),
+      description: input.description.trim(),
       status: input.status,
       priority: input.priority,
       createdAt: currentDate,
@@ -70,10 +86,14 @@ export function useTasks() {
       tags: normalizeTags(input.tags),
     };
 
-    setTasks((currentTasks) => [
-      ...currentTasks,
-      newTask,
-    ]);
+    setTasks((currentTasks) => {
+      saveCurrentStateToHistory(currentTasks);
+
+      return [
+        ...currentTasks,
+        newTask,
+      ];
+    });
 
     return newTask;
   }
@@ -82,8 +102,18 @@ export function useTasks() {
     taskId: string,
     input: UpdateTaskInput,
   ): void {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) => {
+    setTasks((currentTasks) => {
+      const taskExists = currentTasks.some(
+        (task) => task.id === taskId,
+      );
+
+      if (!taskExists) {
+        return currentTasks;
+      }
+
+      saveCurrentStateToHistory(currentTasks);
+
+      return currentTasks.map((task) => {
         if (task.id !== taskId) {
           return task;
         }
@@ -113,42 +143,75 @@ export function useTasks() {
               ? normalizeTags(input.tags)
               : task.tags,
 
-          updatedAt:
-            new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
-      }),
-    );
+      });
+    });
   }
 
   function deleteTask(taskId: string): void {
-    setTasks((currentTasks) =>
-      currentTasks.filter(
+    setTasks((currentTasks) => {
+      const taskExists = currentTasks.some(
+        (task) => task.id === taskId,
+      );
+
+      if (!taskExists) {
+        return currentTasks;
+      }
+
+      saveCurrentStateToHistory(currentTasks);
+
+      return currentTasks.filter(
         (task) => task.id !== taskId,
-      ),
-    );
+      );
+    });
   }
 
   function moveTask(
     taskId: string,
     newStatus: TaskStatus,
   ): void {
-    setTasks((currentTasks) =>
-      currentTasks.map((task) => {
-        if (
-          task.id !== taskId ||
-          task.status === newStatus
-        ) {
+    setTasks((currentTasks) => {
+      const taskToMove = currentTasks.find(
+        (task) => task.id === taskId,
+      );
+
+      if (
+        !taskToMove ||
+        taskToMove.status === newStatus
+      ) {
+        return currentTasks;
+      }
+
+      saveCurrentStateToHistory(currentTasks);
+
+      return currentTasks.map((task) => {
+        if (task.id !== taskId) {
           return task;
         }
 
         return {
           ...task,
           status: newStatus,
-          updatedAt:
-            new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
-      }),
-    );
+      });
+    });
+  }
+
+  function undoLastAction(): void {
+    setHistory((currentHistory) => {
+      if (currentHistory.length === 0) {
+        return currentHistory;
+      }
+
+      const previousTasks =
+        currentHistory[currentHistory.length - 1];
+
+      setTasks(cloneTasks(previousTasks));
+
+      return currentHistory.slice(0, -1);
+    });
   }
 
   function getTaskById(
@@ -167,17 +230,16 @@ export function useTasks() {
     );
   }
 
-  function resetTasks(): void {
-    setTasks(
-      INITIAL_TASKS.map((task) => ({
-        ...task,
-        tags: [...task.tags],
-      })),
-    );
-  }
-
   function clearAllTasks(): void {
-    setTasks([]);
+    setTasks((currentTasks) => {
+      if (currentTasks.length === 0) {
+        return currentTasks;
+      }
+
+      saveCurrentStateToHistory(currentTasks);
+
+      return [];
+    });
   }
 
   const taskCounters = useMemo(() => {
@@ -216,13 +278,14 @@ export function useTasks() {
   return {
     tasks,
     taskCounters,
+    canUndo: history.length > 0,
     createTask,
     updateTask,
     deleteTask,
     moveTask,
+    undoLastAction,
     getTaskById,
     getTasksByStatus,
-    resetTasks,
     clearAllTasks,
   };
 }

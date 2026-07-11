@@ -1,24 +1,31 @@
-import { FiPlus, FiRotateCcw } from "react-icons/fi";
+import {
+  FiCornerUpLeft,
+  FiPlus,
+} from "react-icons/fi";
 
 import "./Header.css";
 
 interface HeaderProps {
   totalTasks: number;
   completedTasks: number;
+  canUndo: boolean;
   onCreateTask: () => void;
-  onResetTasks: () => void;
+  onUndo: () => void;
 }
 
 export function Header({
   totalTasks,
   completedTasks,
+  canUndo,
   onCreateTask,
-  onResetTasks,
+  onUndo,
 }: HeaderProps) {
   const completionRate =
     totalTasks === 0
       ? 0
-      : Math.round((completedTasks / totalTasks) * 100);
+      : Math.round(
+          (completedTasks / totalTasks) * 100,
+        );
 
   return (
     <header className="taskflow-header">
@@ -36,8 +43,9 @@ export function Header({
             <h1>TaskFlow</h1>
 
             <p>
-              Organize prioridades, acompanhe entregas e mantenha o fluxo
-              de trabalho sob controle.
+              Organize prioridades, acompanhe entregas
+              e mantenha o fluxo de trabalho sob
+              controle.
             </p>
           </div>
         </div>
@@ -46,10 +54,16 @@ export function Header({
           <button
             type="button"
             className="taskflow-header__button taskflow-header__button--secondary"
-            onClick={onResetTasks}
+            disabled={!canUndo}
+            title={
+              canUndo
+                ? "Desfazer a última ação"
+                : "Nenhuma ação disponível para desfazer"
+            }
+            onClick={onUndo}
           >
-            <FiRotateCcw size={18} />
-            Restaurar
+            <FiCornerUpLeft size={18} />
+            Desfazer
           </button>
 
           <button
@@ -83,7 +97,9 @@ export function Header({
           <div className="taskflow-header__progress-track">
             <div
               className="taskflow-header__progress-value"
-              style={{ width: `${completionRate}%` }}
+              style={{
+                width: `${completionRate}%`,
+              }}
             />
           </div>
         </article>
