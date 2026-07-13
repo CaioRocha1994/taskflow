@@ -27,6 +27,24 @@ Antes de salvar no Supabase, crie uma chave restrita no provedor e verifique um 
 | Username | `resend` |
 | Password | chave de API criada no Resend |
 
+O Resend exige um domínio verificado para entregar mensagens a endereços externos. Sem domínio próprio, use temporariamente o Brevo conforme a configuração abaixo.
+
+## Alternativa temporária sem domínio: Brevo
+
+O plano gratuito do Brevo oferece SMTP e até 300 envios por dia. É possível cadastrar um endereço individual, como Gmail ou Outlook, e confirmá-lo pelo código recebido. Como o domínio não estará autenticado, o provedor poderá substituir o remetente por um endereço técnico próprio para manter a entrega.
+
+| Campo no Supabase | Valor |
+| --- | --- |
+| Sender email address | endereço verificado no Brevo |
+| Sender name | `TaskFlow` |
+| Host | `smtp-relay.brevo.com` |
+| Port | `465` |
+| Minimum interval per user | `60` segundos |
+| Username | login SMTP exibido no painel do Brevo |
+| Password | chave SMTP criada no Brevo, não a chave de API |
+
+Essa alternativa é adequada para iniciar os testes e operar com baixo volume. Para a versão definitiva, compre um domínio, autentique DKIM e DMARC e migre o remetente para um endereço profissional.
+
 Depois de ativar o SMTP:
 
 1. Cole o conteúdo de cada HTML no modelo correspondente.
