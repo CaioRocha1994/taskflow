@@ -57,6 +57,8 @@ Em **Authentication → Providers → Email**, mantenha login por e-mail habilit
 
 Convites e recuperação de senha usam os e-mails transacionais do Supabase Auth. Para ampliar os limites de envio e personalizar remetente e domínio, configure um SMTP próprio nas opções de autenticação do projeto.
 
+Os modelos profissionais e o roteiro de configuração ficam em [`supabase/email-templates`](supabase/email-templates).
+
 Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na publicação do Realtime pelo painel do Supabase.
 
 ## Deploy no Vercel
