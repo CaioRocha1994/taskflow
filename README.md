@@ -10,7 +10,7 @@ Kanban multiempresa para gestão de tarefas, equipes e usuários. O frontend usa
 - Papéis de proprietário, administrador e membro
 - Proprietários e administradores enxergam todas as tarefas da empresa
 - Membros enxergam somente tarefas atribuídas a eles
-- Convites de usuários por link, com validade e validação do e-mail
+- Convites de usuários por e-mail e link, com validade e validação do endereço
 - Responsável e equipe por tarefa
 - Kanban com drag-and-drop, busca, filtros, prioridades e prazos
 - Histórico de criação, edição e exclusão no banco
@@ -54,6 +54,8 @@ Em **Authentication → URL Configuration**:
 - adicione também `https://SEU-DOMINIO.vercel.app/**`.
 
 Em **Authentication → Providers → Email**, mantenha login por e-mail habilitado. Em produção, é recomendado exigir confirmação do endereço.
+
+Convites e recuperação de senha usam os e-mails transacionais do Supabase Auth. Para ampliar os limites de envio e personalizar remetente e domínio, configure um SMTP próprio nas opções de autenticação do projeto.
 
 Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na publicação do Realtime pelo painel do Supabase.
 
@@ -100,4 +102,7 @@ supabase/
 ```bash
 npm run lint
 npm run build
+npm run test:db
 ```
+
+Os testes de banco usam pgTAP e ficam em `supabase/tests/database`. A execução local requer Docker ativo e a stack local do Supabase CLI iniciada.

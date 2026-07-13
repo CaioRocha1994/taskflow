@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { AccountSettings } from "./components/AccountSettings/AccountSettings";
 import { ConfigurationRequired, AuthScreen, LoadingScreen, Onboarding, UpdatePasswordScreen } from "./components/Access/Access";
 import { DeleteTaskModal } from "./components/DeleteTaskModal/DeleteTaskModal";
 import { Filters } from "./components/Filters/Filters";
@@ -90,6 +91,7 @@ function TaskFlowWorkspace({
   const [taskPendingDeletion, setTaskPendingDeletion] = useState<Task | null>(null);
   const [taskInDetails, setTaskInDetails] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [operationError, setOperationError] = useState(inviteError);
 
   const filteredTasks = useMemo(() => {
@@ -138,6 +140,7 @@ function TaskFlowWorkspace({
         canManage={canManage}
         onCreateTask={() => openCreateModal()}
         onSettings={() => setIsSettingsOpen(true)}
+        onAccountSettings={() => setIsAccountSettingsOpen(true)}
         onOrganizationChange={workspace.setActiveOrganizationId}
         onSignOut={() => void onSignOut()}
       />
@@ -186,6 +189,13 @@ function TaskFlowWorkspace({
       <DeleteTaskModal isOpen={Boolean(taskPendingDeletion)} task={taskPendingDeletion} onClose={() => setTaskPendingDeletion(null)} onConfirm={(id) => void deleteTask(id)} />
       <TaskDetailsModal isOpen={Boolean(taskInDetails)} task={taskInDetails} canManage={canManage} onClose={() => setTaskInDetails(null)} onEdit={openEditModal} onDelete={(task) => { setTaskInDetails(null); setTaskPendingDeletion(task); }} />
       <WorkspaceSettings isOpen={isSettingsOpen} organizationId={membership.organizationId} currentUserId={session.user.id} teams={workspace.teams} members={workspace.members} onClose={() => setIsSettingsOpen(false)} onChanged={workspace.refresh} />
+      <AccountSettings
+        isOpen={isAccountSettingsOpen}
+        currentName={userName}
+        email={session.user.email ?? ""}
+        onClose={() => setIsAccountSettingsOpen(false)}
+        onChanged={workspace.refresh}
+      />
     </main>
   );
 }

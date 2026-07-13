@@ -1,4 +1,4 @@
-import { FiLogOut, FiPlus, FiSettings } from "react-icons/fi";
+import { FiLogOut, FiPlus, FiSettings, FiUser } from "react-icons/fi";
 import type { Membership } from "../../types/workspace";
 import "./Header.css";
 
@@ -13,6 +13,7 @@ interface HeaderProps {
   canManage: boolean;
   onCreateTask: () => void;
   onSettings: () => void;
+  onAccountSettings: () => void;
   onOrganizationChange: (id: string) => void;
   onSignOut: () => void;
 }
@@ -28,6 +29,7 @@ export function Header({
   canManage,
   onCreateTask,
   onSettings,
+  onAccountSettings,
   onOrganizationChange,
   onSignOut,
 }: HeaderProps) {
@@ -58,6 +60,9 @@ export function Header({
               <FiSettings size={18} /> Administrar
             </button>
           )}
+          <button type="button" className="taskflow-header__button taskflow-header__button--secondary" onClick={onAccountSettings}>
+            <FiUser size={18} /> Minha conta
+          </button>
           <button type="button" className="taskflow-header__button taskflow-header__button--primary" onClick={onCreateTask}>
             <FiPlus size={20} /> Nova tarefa
           </button>

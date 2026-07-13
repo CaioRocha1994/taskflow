@@ -126,27 +126,52 @@ export function WorkspaceSettings({
     event.preventDefault();
     setMessage("");
     setBusyKey("create-invite");
-    const { data, error } = await getSupabase()
+    const client = getSupabase();
+    const normalizedEmail = inviteEmail.trim().toLowerCase();
+
+    const { error: cleanupError } = await client
+      .from("invitations")
+      .delete()
+      .eq("organization_id", organizationId)
+      .eq("email", normalizedEmail)
+      .is("accepted_at", null);
+
+    if (cleanupError) {
+      setBusyKey("");
+      setMessage(cleanupError.message);
+      return;
+    }
+
+    const { data, error } = await client
       .from("invitations")
       .insert({
         organization_id: organizationId,
         team_id: inviteTeamId || null,
-        email: inviteEmail.trim().toLowerCase(),
+        email: normalizedEmail,
         role: inviteRole,
         invited_by: currentUserId,
       })
       .select("token")
       .single();
-    setBusyKey("");
-
-    if (error) setMessage(error.message);
-    else {
-      const link = invitationUrl(data.token);
-      setInviteLink(link);
-      setInviteEmail("");
-      setMessage("Convite criado. Compartilhe o link abaixo com o usuário.");
-      await loadInvitations();
+    if (error) {
+      setBusyKey("");
+      setMessage(error.message);
+      return;
     }
+
+    const link = invitationUrl(data.token);
+    setInviteLink(link);
+    const { error: emailError } = await client.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: { emailRedirectTo: link, shouldCreateUser: true },
+    });
+
+    setBusyKey("");
+    setInviteEmail("");
+    setMessage(emailError
+      ? "O convite foi criado, mas o e-mail não pôde ser enviado. Copie e compartilhe o link abaixo."
+      : "Convite enviado por e-mail. O link também está disponível abaixo.");
+    await loadInvitations();
   }
 
   async function addMemberToTeam(event: FormEvent) {
@@ -383,7 +408,7 @@ export function WorkspaceSettings({
                   </select>
                 </label>
               </div>
-              <button disabled={busyKey === "create-invite"}><FiPlus /> {busyKey === "create-invite" ? "Gerando..." : "Gerar convite"}</button>
+              <button disabled={busyKey === "create-invite"}><FiMail /> {busyKey === "create-invite" ? "Enviando..." : "Enviar convite por e-mail"}</button>
             </form>
             {inviteLink && (
               <div className="workspace-settings__invite">

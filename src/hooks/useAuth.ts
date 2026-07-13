@@ -5,7 +5,9 @@ import { getSupabase } from "../lib/supabase";
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(
+    () => new URLSearchParams(window.location.search).get("recovery") === "1",
+  );
 
   useEffect(() => {
     const client = getSupabase();
@@ -17,7 +19,8 @@ export function useAuth() {
 
     const { data } = client.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
-      setIsPasswordRecovery(event === "PASSWORD_RECOVERY");
+      if (event === "PASSWORD_RECOVERY") setIsPasswordRecovery(true);
+      if (event === "SIGNED_OUT") setIsPasswordRecovery(false);
       setIsLoading(false);
     });
 
