@@ -12,6 +12,7 @@ import type {
   TaskPriority,
   TaskStatus,
 } from "../../types/task";
+import type { Team, WorkspaceMember } from "../../types/workspace";
 
 import {
   PRIORITY_LABELS,
@@ -24,15 +25,21 @@ interface TaskModalProps {
   isOpen: boolean;
   task?: Task | null;
   initialStatus?: TaskStatus;
+  teams: Team[];
+  members: WorkspaceMember[];
+  currentUserId: string;
+  canManage: boolean;
   onClose: () => void;
-  onCreate: (input: CreateTaskInput) => void;
+  onCreate: (input: CreateTaskInput) => Promise<void>;
   onUpdate: (
     taskId: string,
     input: CreateTaskInput,
-  ) => void;
+  ) => Promise<void>;
 }
 
 interface TaskFormData {
+  teamId: string;
+  assigneeId: string;
   title: string;
   description: string;
   status: TaskStatus;
@@ -42,6 +49,8 @@ interface TaskFormData {
 }
 
 const EMPTY_FORM: TaskFormData = {
+  teamId: "",
+  assigneeId: "",
   title: "",
   description: "",
   status: "backlog",
@@ -54,6 +63,10 @@ export function TaskModal({
   isOpen,
   task,
   initialStatus = "backlog",
+  teams,
+  members,
+  currentUserId,
+  canManage,
   onClose,
   onCreate,
   onUpdate,
@@ -63,6 +76,8 @@ export function TaskModal({
 
   const [titleError, setTitleError] =
     useState("");
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isEditing = Boolean(task);
 
@@ -73,6 +88,8 @@ export function TaskModal({
 
     if (task) {
       setFormData({
+        teamId: task.teamId,
+        assigneeId: task.assigneeId ?? "",
         title: task.title,
         description: task.description,
         status: task.status,
@@ -87,11 +104,16 @@ export function TaskModal({
 
     setFormData({
       ...EMPTY_FORM,
+      teamId:
+        teams.find((team) =>
+          canManage || members.find((member) => member.userId === currentUserId)?.teamIds.includes(team.id),
+        )?.id ?? "",
+      assigneeId: canManage ? "" : currentUserId,
       status: initialStatus,
     });
 
     setTitleError("");
-  }, [isOpen, task, initialStatus]);
+  }, [isOpen, task, initialStatus, teams, members, currentUserId, canManage]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -130,7 +152,7 @@ export function TaskModal({
     }));
   }
 
-  function handleSubmit(
+  async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
@@ -147,6 +169,8 @@ export function TaskModal({
     }
 
     const input: CreateTaskInput = {
+      teamId: formData.teamId,
+      assigneeId: formData.assigneeId,
       title: normalizedTitle,
       description: formData.description.trim(),
       status: formData.status,
@@ -158,13 +182,17 @@ export function TaskModal({
         .filter(Boolean),
     };
 
-    if (task) {
-      onUpdate(task.id, input);
-    } else {
-      onCreate(input);
+    try {
+      setIsSubmitting(true);
+      setFormError("");
+      if (task) await onUpdate(task.id, input);
+      else await onCreate(input);
+      onClose();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Não foi possível salvar a tarefa.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onClose();
   }
 
   if (!isOpen) {
@@ -221,6 +249,26 @@ export function TaskModal({
           className="task-modal__form"
           onSubmit={handleSubmit}
         >
+          <label className="task-modal__field">
+            <span>Equipe ou setor<strong>*</strong></span>
+            <select required value={formData.teamId} disabled={!canManage && Boolean(task)} onChange={(event) => updateField("teamId", event.target.value)}>
+              <option value="" disabled>Selecione</option>
+              {teams
+                .filter((team) => canManage || members.find((member) => member.userId === currentUserId)?.teamIds.includes(team.id))
+                .map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+            </select>
+          </label>
+
+          <label className="task-modal__field">
+            <span>Responsável</span>
+            <select value={formData.assigneeId} disabled={!canManage} onChange={(event) => updateField("assigneeId", event.target.value)}>
+              {canManage && <option value="">Sem responsável</option>}
+              {members
+                .filter((member) => canManage || member.userId === currentUserId)
+                .filter((member) => !formData.teamId || member.teamIds.includes(formData.teamId))
+                .map((member) => <option key={member.userId} value={member.userId}>{member.fullName}</option>)}
+            </select>
+          </label>
           <label className="task-modal__field task-modal__field--full">
             <span>
               Título
@@ -366,6 +414,7 @@ export function TaskModal({
           </label>
 
           <footer className="task-modal__footer">
+            {formError && <p className="task-modal__error">{formError}</p>}
             <button
               type="button"
               className="task-modal__button task-modal__button--secondary"
@@ -376,9 +425,10 @@ export function TaskModal({
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="task-modal__button task-modal__button--primary"
             >
-              {isEditing
+              {isSubmitting ? "Salvando…" : isEditing
                 ? "Salvar alterações"
                 : "Criar tarefa"}
             </button>

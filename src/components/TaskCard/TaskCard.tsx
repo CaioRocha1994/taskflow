@@ -22,6 +22,7 @@ import "./TaskCard.css";
 
 interface TaskCardProps {
   task: Task;
+  canManage: boolean;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onOpenDetails: (task: Task) => void;
@@ -45,6 +46,7 @@ function formatDate(date?: string): string {
 
 export function TaskCard({
   task,
+  canManage,
   onEdit,
   onDelete,
   onOpenDetails,
@@ -85,6 +87,7 @@ export function TaskCard({
         <h3>{task.title}</h3>
 
         <p>{task.description}</p>
+        <small className="task-card__assignment">{task.teamName} · {task.assigneeName ?? "Sem responsável"}</small>
       </div>
 
       {task.tags.length > 0 && (
@@ -137,7 +140,7 @@ export function TaskCard({
         </span>
       </div>
 
-      <div className="task-card__actions">
+      {canManage && <div className="task-card__actions">
         <button
           type="button"
           className="task-card__action-button"
@@ -161,7 +164,7 @@ export function TaskCard({
           <FiTrash2 size={16} />
           Excluir
         </button>
-      </div>
+      </div>}
     </article>
   );
 }

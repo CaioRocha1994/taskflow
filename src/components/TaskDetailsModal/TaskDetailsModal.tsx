@@ -23,6 +23,7 @@ interface TaskDetailsModalProps {
   onClose: () => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  canManage: boolean;
 }
 
 function formatDate(date?: string): string {
@@ -57,6 +58,7 @@ export function TaskDetailsModal({
   onClose,
   onEdit,
   onDelete,
+  canManage,
 }: TaskDetailsModalProps) {
   useEffect(() => {
     if (!isOpen) {
@@ -181,7 +183,7 @@ export function TaskDetailsModal({
           </div>
         </div>
 
-        <footer className="task-details__footer">
+        {canManage && <footer className="task-details__footer">
           <button
             type="button"
             className="task-details__button task-details__button--danger"
@@ -205,7 +207,7 @@ export function TaskDetailsModal({
             <FiEdit2 size={17} />
             Editar tarefa
           </button>
-        </footer>
+        </footer>}
       </section>
     </div>
   );

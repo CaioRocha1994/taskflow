@@ -33,6 +33,7 @@ interface KanbanBoardProps {
     taskId: string,
     newStatus: TaskStatus,
   ) => void;
+  canManage: boolean;
 }
 
 function isTaskStatus(
@@ -53,6 +54,7 @@ export function KanbanBoard({
   onDeleteTask,
   onOpenTaskDetails,
   onMoveTask,
+  canManage,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -143,6 +145,7 @@ export function KanbanBoard({
                 onOpenTaskDetails={
                   onOpenTaskDetails
                 }
+                canManage={canManage}
               />
             );
           })}

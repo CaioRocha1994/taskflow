@@ -24,6 +24,7 @@ interface KanbanColumnProps {
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
   onOpenTaskDetails: (task: Task) => void;
+  canManage: boolean;
 }
 
 interface DraggableTaskCardProps {
@@ -31,6 +32,7 @@ interface DraggableTaskCardProps {
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
   onOpenTaskDetails: (task: Task) => void;
+  canManage: boolean;
 }
 
 function DraggableTaskCard({
@@ -38,6 +40,7 @@ function DraggableTaskCard({
   onEditTask,
   onDeleteTask,
   onOpenTaskDetails,
+  canManage,
 }: DraggableTaskCardProps) {
   const {
     attributes,
@@ -71,6 +74,7 @@ function DraggableTaskCard({
     >
       <TaskCard
         task={task}
+        canManage={canManage}
         onEdit={onEditTask}
         onDelete={onDeleteTask}
         onOpenDetails={onOpenTaskDetails}
@@ -86,6 +90,7 @@ export function KanbanColumn({
   onEditTask,
   onDeleteTask,
   onOpenTaskDetails,
+  canManage,
 }: KanbanColumnProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
@@ -136,6 +141,7 @@ export function KanbanColumn({
             onEditTask={onEditTask}
             onDeleteTask={onDeleteTask}
             onOpenTaskDetails={onOpenTaskDetails}
+            canManage={canManage}
           />
         ))}
 

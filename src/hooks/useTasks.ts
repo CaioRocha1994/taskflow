@@ -1,291 +1,155 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getSupabase } from "../lib/supabase";
+import type { CreateTaskInput, Task, TaskStatus, UpdateTaskInput } from "../types/task";
+import type { Team, WorkspaceMember } from "../types/workspace";
 
-import {
-  loadTasks,
-  saveTasks,
-} from "../services/taskStorage";
-
-import type {
-  CreateTaskInput,
-  Task,
-  TaskStatus,
-  UpdateTaskInput,
-} from "../types/task";
-
-import { INITIAL_TASKS } from "../utils/constants";
-
-function generateTaskId(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-
-  return `task-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2, 10)}`;
+interface TaskRow {
+  id: string;
+  organization_id: string;
+  team_id: string;
+  assignee_id: string | null;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: Task["priority"];
+  due_date: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
 }
 
-function normalizeTags(tags: string[]): string[] {
-  return Array.from(
-    new Set(
-      tags
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-    ),
-  );
+function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task {
+  const team = teams.find((item) => item.id === row.team_id);
+  const assignee = members.find((item) => item.userId === row.assignee_id);
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    teamId: row.team_id,
+    teamName: team?.name ?? "Equipe",
+    assigneeId: row.assignee_id ?? undefined,
+    assigneeName: assignee?.fullName,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    priority: row.priority,
+    dueDate: row.due_date ?? undefined,
+    tags: row.tags ?? [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function cloneTasks(tasks: Task[]): Task[] {
-  return tasks.map((task) => ({
-    ...task,
-    tags: [...task.tags],
-  }));
-}
+export function useTasks(
+  organizationId: string,
+  userId: string,
+  teams: Team[],
+  members: WorkspaceMember[],
+) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>(
-    () => loadTasks() ?? INITIAL_TASKS,
-  );
+  const loadTasks = useCallback(async () => {
+    if (!organizationId) return;
+    setIsLoading(true);
+    setError("");
+    const { data, error: queryError } = await getSupabase()
+      .from("tasks")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: true });
 
-  const [history, setHistory] = useState<Task[][]>([]);
+    if (queryError) setError(queryError.message);
+    else setTasks(((data ?? []) as TaskRow[]).map((row) => mapTask(row, teams, members)));
+    setIsLoading(false);
+  }, [organizationId, teams, members]);
 
   useEffect(() => {
-    saveTasks(tasks);
-  }, [tasks]);
+    void loadTasks();
+  }, [loadTasks]);
 
-  function saveCurrentStateToHistory(
-    currentTasks: Task[],
-  ): void {
-    setHistory((currentHistory) => [
-      ...currentHistory,
-      cloneTasks(currentTasks),
-    ]);
-  }
+  useEffect(() => {
+    if (!organizationId) return;
+    const channel = getSupabase()
+      .channel(`tasks:${organizationId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tasks", filter: `organization_id=eq.${organizationId}` },
+        () => void loadTasks(),
+      )
+      .subscribe();
+    return () => {
+      void getSupabase().removeChannel(channel);
+    };
+  }, [organizationId, loadTasks]);
 
-  function createTask(
-    input: CreateTaskInput,
-  ): Task {
-    const currentDate = new Date().toISOString();
-
-    const newTask: Task = {
-      id: generateTaskId(),
+  async function createTask(input: CreateTaskInput): Promise<void> {
+    const { error: mutationError } = await getSupabase().from("tasks").insert({
+      organization_id: organizationId,
+      team_id: input.teamId,
+      assignee_id: input.assigneeId ?? null,
       title: input.title.trim(),
       description: input.description.trim(),
       status: input.status,
       priority: input.priority,
-      createdAt: currentDate,
-      updatedAt: currentDate,
-      dueDate:
-        input.dueDate?.trim() || undefined,
-      tags: normalizeTags(input.tags),
-    };
-
-    setTasks((currentTasks) => {
-      saveCurrentStateToHistory(currentTasks);
-
-      return [
-        ...currentTasks,
-        newTask,
-      ];
+      due_date: input.dueDate || null,
+      tags: Array.from(new Set(input.tags.map((tag) => tag.trim()).filter(Boolean))),
+      created_by: userId,
+      updated_by: userId,
     });
-
-    return newTask;
+    if (mutationError) throw mutationError;
+    await loadTasks();
   }
 
-  function updateTask(
-    taskId: string,
-    input: UpdateTaskInput,
-  ): void {
-    setTasks((currentTasks) => {
-      const taskExists = currentTasks.some(
-        (task) => task.id === taskId,
-      );
+  async function updateTask(taskId: string, input: UpdateTaskInput): Promise<void> {
+    const payload: Record<string, unknown> = {};
+    if (input.teamId !== undefined) payload.team_id = input.teamId;
+    if (input.assigneeId !== undefined) payload.assignee_id = input.assigneeId || null;
+    if (input.title !== undefined) payload.title = input.title.trim();
+    if (input.description !== undefined) payload.description = input.description.trim();
+    if (input.status !== undefined) payload.status = input.status;
+    if (input.priority !== undefined) payload.priority = input.priority;
+    if (input.dueDate !== undefined) payload.due_date = input.dueDate || null;
+    if (input.tags !== undefined) payload.tags = input.tags;
 
-      if (!taskExists) {
-        return currentTasks;
-      }
-
-      saveCurrentStateToHistory(currentTasks);
-
-      return currentTasks.map((task) => {
-        if (task.id !== taskId) {
-          return task;
-        }
-
-        return {
-          ...task,
-          ...input,
-
-          title:
-            input.title !== undefined
-              ? input.title.trim()
-              : task.title,
-
-          description:
-            input.description !== undefined
-              ? input.description.trim()
-              : task.description,
-
-          dueDate:
-            input.dueDate !== undefined
-              ? input.dueDate.trim() ||
-                undefined
-              : task.dueDate,
-
-          tags:
-            input.tags !== undefined
-              ? normalizeTags(input.tags)
-              : task.tags,
-
-          updatedAt: new Date().toISOString(),
-        };
-      });
-    });
+    const { error: mutationError } = await getSupabase()
+      .from("tasks")
+      .update(payload)
+      .eq("id", taskId)
+      .eq("organization_id", organizationId);
+    if (mutationError) throw mutationError;
+    await loadTasks();
   }
 
-  function deleteTask(taskId: string): void {
-    setTasks((currentTasks) => {
-      const taskExists = currentTasks.some(
-        (task) => task.id === taskId,
-      );
-
-      if (!taskExists) {
-        return currentTasks;
-      }
-
-      saveCurrentStateToHistory(currentTasks);
-
-      return currentTasks.filter(
-        (task) => task.id !== taskId,
-      );
-    });
+  async function deleteTask(taskId: string): Promise<void> {
+    const { error: mutationError } = await getSupabase()
+      .from("tasks")
+      .delete()
+      .eq("id", taskId)
+      .eq("organization_id", organizationId);
+    if (mutationError) throw mutationError;
+    await loadTasks();
   }
 
-  function moveTask(
-    taskId: string,
-    newStatus: TaskStatus,
-  ): void {
-    setTasks((currentTasks) => {
-      const taskToMove = currentTasks.find(
-        (task) => task.id === taskId,
-      );
-
-      if (
-        !taskToMove ||
-        taskToMove.status === newStatus
-      ) {
-        return currentTasks;
-      }
-
-      saveCurrentStateToHistory(currentTasks);
-
-      return currentTasks.map((task) => {
-        if (task.id !== taskId) {
-          return task;
-        }
-
-        return {
-          ...task,
-          status: newStatus,
-          updatedAt: new Date().toISOString(),
-        };
-      });
-    });
+  async function moveTask(taskId: string, status: TaskStatus): Promise<void> {
+    await updateTask(taskId, { status });
   }
 
-  function undoLastAction(): void {
-    setHistory((currentHistory) => {
-      if (currentHistory.length === 0) {
-        return currentHistory;
-      }
+  const taskCounters = useMemo(
+    () =>
+      tasks.reduce(
+        (result, task) => {
+          result.total += 1;
+          if (task.status === "backlog") result.backlog += 1;
+          if (task.status === "todo") result.todo += 1;
+          if (task.status === "in-progress") result.inProgress += 1;
+          if (task.status === "done") result.done += 1;
+          return result;
+        },
+        { total: 0, backlog: 0, todo: 0, inProgress: 0, done: 0 },
+      ),
+    [tasks],
+  );
 
-      const previousTasks =
-        currentHistory[currentHistory.length - 1];
-
-      setTasks(cloneTasks(previousTasks));
-
-      return currentHistory.slice(0, -1);
-    });
-  }
-
-  function getTaskById(
-    taskId: string,
-  ): Task | undefined {
-    return tasks.find(
-      (task) => task.id === taskId,
-    );
-  }
-
-  function getTasksByStatus(
-    status: TaskStatus,
-  ): Task[] {
-    return tasks.filter(
-      (task) => task.status === status,
-    );
-  }
-
-  function clearAllTasks(): void {
-    setTasks((currentTasks) => {
-      if (currentTasks.length === 0) {
-        return currentTasks;
-      }
-
-      saveCurrentStateToHistory(currentTasks);
-
-      return [];
-    });
-  }
-
-  const taskCounters = useMemo(() => {
-    return tasks.reduce(
-      (counters, task) => {
-        counters.total += 1;
-
-        if (task.status === "backlog") {
-          counters.backlog += 1;
-        }
-
-        if (task.status === "todo") {
-          counters.todo += 1;
-        }
-
-        if (task.status === "in-progress") {
-          counters.inProgress += 1;
-        }
-
-        if (task.status === "done") {
-          counters.done += 1;
-        }
-
-        return counters;
-      },
-      {
-        total: 0,
-        backlog: 0,
-        todo: 0,
-        inProgress: 0,
-        done: 0,
-      },
-    );
-  }, [tasks]);
-
-  return {
-    tasks,
-    taskCounters,
-    canUndo: history.length > 0,
-    createTask,
-    updateTask,
-    deleteTask,
-    moveTask,
-    undoLastAction,
-    getTaskById,
-    getTasksByStatus,
-    clearAllTasks,
-  };
+  return { tasks, taskCounters, isLoading, error, createTask, updateTask, deleteTask, moveTask, refresh: loadTasks };
 }

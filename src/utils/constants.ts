@@ -1,6 +1,5 @@
 import type {
   KanbanColumn,
-  Task,
   TaskPriority,
   TaskStatus,
 } from "../types/task";
@@ -48,5 +47,3 @@ export const PRIORITY_ORDER: Record<TaskPriority, number> = {
   high: 3,
   urgent: 4,
 };
-
-export const INITIAL_TASKS: Task[] = [];

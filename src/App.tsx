@@ -1,196 +1,153 @@
-import {
-  useMemo,
-  useState,
-} from "react";
-
+import { useEffect, useMemo, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { ConfigurationRequired, AuthScreen, LoadingScreen, Onboarding, UpdatePasswordScreen } from "./components/Access/Access";
 import { DeleteTaskModal } from "./components/DeleteTaskModal/DeleteTaskModal";
 import { Filters } from "./components/Filters/Filters";
 import { Header } from "./components/Header/Header";
 import { KanbanBoard } from "./components/KanbanBoard/KanbanBoard";
 import { TaskDetailsModal } from "./components/TaskDetailsModal/TaskDetailsModal";
 import { TaskModal } from "./components/TaskModal/TaskModal";
-
+import { WorkspaceSettings } from "./components/WorkspaceSettings/WorkspaceSettings";
+import { useAuth } from "./hooks/useAuth";
 import { useTasks } from "./hooks/useTasks";
+import { useWorkspace } from "./hooks/useWorkspace";
+import { getSupabase, isSupabaseConfigured } from "./lib/supabase";
+import type { Task, TaskPriority, TaskStatus } from "./types/task";
 
-import type {
-  CreateTaskInput,
-  Task,
-  TaskPriority,
-  TaskStatus,
-} from "./types/task";
+const ROLE_LABELS = { owner: "Proprietário", admin: "Administrador", member: "Membro" } as const;
 
-function App() {
-  const {
-    tasks,
-    taskCounters,
-    canUndo,
-    createTask,
-    updateTask,
-    deleteTask,
-    moveTask,
-    undoLastAction,
-  } = useTasks();
+function AuthenticatedApp({ session, onSignOut }: { session: Session; onSignOut: () => Promise<void> }) {
+  const workspace = useWorkspace(session.user.id);
+  const refreshWorkspace = workspace.refresh;
+  const [isAcceptingInvite, setIsAcceptingInvite] = useState(
+    () => new URLSearchParams(window.location.search).has("invite"),
+  );
+  const [inviteError, setInviteError] = useState("");
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invite");
+    if (!token) return;
 
-  const [statusFilter, setStatusFilter] =
-    useState<TaskStatus | "all">("all");
+    async function acceptInvite() {
+      const { error } = await getSupabase().rpc("accept_invitation", { p_token: token });
+      if (error) setInviteError(error.message);
+      else {
+        window.history.replaceState({}, "", window.location.pathname);
+        refreshWorkspace();
+      }
+      setIsAcceptingInvite(false);
+    }
+    void acceptInvite();
+  }, [refreshWorkspace]);
 
-  const [
-    priorityFilter,
-    setPriorityFilter,
-  ] = useState<TaskPriority | "all">("all");
+  if (workspace.isLoading || isAcceptingInvite) return <LoadingScreen />;
+  if (workspace.error && workspace.memberships.length === 0) {
+    return <main className="access-shell"><section className="access-card"><h1>Não foi possível carregar</h1><p>{workspace.error}</p></section></main>;
+  }
+  if (workspace.memberships.length === 0) {
+    return <Onboarding onComplete={workspace.refresh} />;
+  }
+  if (!workspace.activeMembership) return <LoadingScreen />;
 
-  const [
-    isTaskModalOpen,
-    setIsTaskModalOpen,
-  ] = useState(false);
+  return (
+    <TaskFlowWorkspace
+      session={session}
+      workspace={workspace}
+      inviteError={inviteError}
+      onSignOut={onSignOut}
+    />
+  );
+}
 
-  const [
-    selectedTask,
-    setSelectedTask,
-  ] = useState<Task | null>(null);
+interface WorkspaceHook extends ReturnType<typeof useWorkspace> {}
 
-  const [
-    initialTaskStatus,
-    setInitialTaskStatus,
-  ] = useState<TaskStatus>("backlog");
-
-  const [
-    taskPendingDeletion,
-    setTaskPendingDeletion,
-  ] = useState<Task | null>(null);
-
-  const [
-    taskInDetails,
-    setTaskInDetails,
-  ] = useState<Task | null>(null);
+function TaskFlowWorkspace({
+  session,
+  workspace,
+  inviteError,
+  onSignOut,
+}: {
+  session: Session;
+  workspace: WorkspaceHook;
+  inviteError: string;
+  onSignOut: () => Promise<void>;
+}) {
+  const membership = workspace.activeMembership!;
+  const canManage = membership.role === "owner" || membership.role === "admin";
+  const taskStore = useTasks(
+    membership.organizationId,
+    session.user.id,
+    workspace.teams,
+    workspace.members,
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [initialTaskStatus, setInitialTaskStatus] = useState<TaskStatus>("backlog");
+  const [taskPendingDeletion, setTaskPendingDeletion] = useState<Task | null>(null);
+  const [taskInDetails, setTaskInDetails] = useState<Task | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [operationError, setOperationError] = useState(inviteError);
 
   const filteredTasks = useMemo(() => {
-    const normalizedSearch = searchTerm
-      .trim()
-      .toLowerCase();
-
-    return tasks.filter((task) => {
-      const matchesSearch =
-        normalizedSearch === "" ||
-        task.title
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        task.description
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        task.tags.some((tag) =>
-          tag
-            .toLowerCase()
-            .includes(normalizedSearch),
-        );
-
-      const matchesStatus =
-        statusFilter === "all" ||
-        task.status === statusFilter;
-
-      const matchesPriority =
-        priorityFilter === "all" ||
-        task.priority === priorityFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority
-      );
+    const search = searchTerm.trim().toLowerCase();
+    return taskStore.tasks.filter((task) => {
+      const matchesSearch = !search || [task.title, task.description, task.teamName, task.assigneeName ?? "", ...task.tags]
+        .some((value) => value.toLowerCase().includes(search));
+      return matchesSearch && (statusFilter === "all" || task.status === statusFilter) && (priorityFilter === "all" || task.priority === priorityFilter);
     });
-  }, [
-    tasks,
-    searchTerm,
-    statusFilter,
-    priorityFilter,
-  ]);
+  }, [taskStore.tasks, searchTerm, statusFilter, priorityFilter]);
 
-  function handleOpenCreateModal(
-    status: TaskStatus = "backlog",
-  ) {
+  function openCreateModal(status: TaskStatus = "backlog") {
     setSelectedTask(null);
     setInitialTaskStatus(status);
     setIsTaskModalOpen(true);
   }
 
-  function handleOpenEditModal(task: Task) {
+  function openEditModal(task: Task) {
+    if (!canManage) return;
     setTaskInDetails(null);
     setSelectedTask(task);
     setInitialTaskStatus(task.status);
     setIsTaskModalOpen(true);
   }
 
-  function handleCloseTaskModal() {
-    setIsTaskModalOpen(false);
-    setSelectedTask(null);
+  async function deleteTask(taskId: string) {
+    try {
+      await taskStore.deleteTask(taskId);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : "Não foi possível excluir a tarefa.");
+    }
   }
 
-  function handleCreateTask(
-    input: CreateTaskInput,
-  ) {
-    createTask(input);
-  }
-
-  function handleUpdateTask(
-    taskId: string,
-    input: CreateTaskInput,
-  ) {
-    updateTask(taskId, input);
-  }
-
-  function handleDeleteTask(task: Task) {
-    setTaskInDetails(null);
-    setTaskPendingDeletion(task);
-  }
-
-  function handleCloseDeleteModal() {
-    setTaskPendingDeletion(null);
-  }
-
-  function handleConfirmDelete(
-    taskId: string,
-  ) {
-    deleteTask(taskId);
-  }
-
-  function handleOpenTaskDetails(
-    task: Task,
-  ) {
-    setTaskInDetails(task);
-  }
-
-  function handleCloseTaskDetails() {
-    setTaskInDetails(null);
-  }
-
-  function handleClearFilters() {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setPriorityFilter("all");
-  }
-
-  function handleUndo() {
-    undoLastAction();
-
-    setSelectedTask(null);
-    setTaskPendingDeletion(null);
-    setTaskInDetails(null);
-  }
+  const userName = session.user.user_metadata.full_name || session.user.email || "Usuário";
 
   return (
     <main>
       <Header
-        totalTasks={taskCounters.total}
-        completedTasks={taskCounters.done}
-        canUndo={canUndo}
-        onCreateTask={() =>
-          handleOpenCreateModal("backlog")
-        }
-        onUndo={handleUndo}
+        totalTasks={taskStore.taskCounters.total}
+        completedTasks={taskStore.taskCounters.done}
+        companyName={membership.organization.name}
+        userName={userName}
+        role={ROLE_LABELS[membership.role]}
+        memberships={workspace.memberships}
+        activeOrganizationId={workspace.activeOrganizationId}
+        canManage={canManage}
+        onCreateTask={() => openCreateModal()}
+        onSettings={() => setIsSettingsOpen(true)}
+        onOrganizationChange={workspace.setActiveOrganizationId}
+        onSignOut={() => void onSignOut()}
       />
+
+      {(operationError || taskStore.error) && (
+        <div className="app-feedback" role="alert">
+          <span>{operationError || taskStore.error}</span>
+          <button onClick={() => setOperationError("")}>Fechar</button>
+        </div>
+      )}
 
       <Filters
         searchTerm={searchTerm}
@@ -199,47 +156,49 @@ function App() {
         onSearchChange={setSearchTerm}
         onStatusChange={setStatusFilter}
         onPriorityChange={setPriorityFilter}
-        onClearFilters={handleClearFilters}
+        onClearFilters={() => { setSearchTerm(""); setStatusFilter("all"); setPriorityFilter("all"); }}
       />
 
-      <KanbanBoard
-        tasks={filteredTasks}
-        onCreateTask={handleOpenCreateModal}
-        onEditTask={handleOpenEditModal}
-        onDeleteTask={handleDeleteTask}
-        onOpenTaskDetails={
-          handleOpenTaskDetails
-        }
-        onMoveTask={moveTask}
-      />
+      {taskStore.isLoading ? <section className="board-loading">Carregando tarefas…</section> : (
+        <KanbanBoard
+          tasks={filteredTasks}
+          canManage={canManage}
+          onCreateTask={openCreateModal}
+          onEditTask={openEditModal}
+          onDeleteTask={(task) => setTaskPendingDeletion(task)}
+          onOpenTaskDetails={setTaskInDetails}
+          onMoveTask={(taskId, status) => void taskStore.moveTask(taskId, status).catch((error: unknown) => setOperationError(error instanceof Error ? error.message : "Não foi possível mover a tarefa."))}
+        />
+      )}
 
       <TaskModal
         isOpen={isTaskModalOpen}
         task={selectedTask}
         initialStatus={initialTaskStatus}
-        onClose={handleCloseTaskModal}
-        onCreate={handleCreateTask}
-        onUpdate={handleUpdateTask}
+        teams={workspace.teams}
+        members={workspace.members}
+        currentUserId={session.user.id}
+        canManage={canManage}
+        onClose={() => { setIsTaskModalOpen(false); setSelectedTask(null); }}
+        onCreate={taskStore.createTask}
+        onUpdate={taskStore.updateTask}
       />
-
-      <DeleteTaskModal
-        isOpen={Boolean(
-          taskPendingDeletion,
-        )}
-        task={taskPendingDeletion}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-      />
-
-      <TaskDetailsModal
-        isOpen={Boolean(taskInDetails)}
-        task={taskInDetails}
-        onClose={handleCloseTaskDetails}
-        onEdit={handleOpenEditModal}
-        onDelete={handleDeleteTask}
-      />
+      <DeleteTaskModal isOpen={Boolean(taskPendingDeletion)} task={taskPendingDeletion} onClose={() => setTaskPendingDeletion(null)} onConfirm={(id) => void deleteTask(id)} />
+      <TaskDetailsModal isOpen={Boolean(taskInDetails)} task={taskInDetails} canManage={canManage} onClose={() => setTaskInDetails(null)} onEdit={openEditModal} onDelete={(task) => { setTaskInDetails(null); setTaskPendingDeletion(task); }} />
+      <WorkspaceSettings isOpen={isSettingsOpen} organizationId={membership.organizationId} currentUserId={session.user.id} teams={workspace.teams} members={workspace.members} onClose={() => setIsSettingsOpen(false)} onChanged={workspace.refresh} />
     </main>
   );
 }
 
-export default App;
+function ConnectedApp() {
+  const { session, isLoading, isPasswordRecovery, setIsPasswordRecovery, signOut } = useAuth();
+  if (isLoading) return <LoadingScreen />;
+  if (!session) return <AuthScreen />;
+  if (isPasswordRecovery) return <UpdatePasswordScreen onComplete={() => setIsPasswordRecovery(false)} />;
+  return <AuthenticatedApp session={session} onSignOut={signOut} />;
+}
+
+export default function App() {
+  if (!isSupabaseConfigured) return <ConfigurationRequired />;
+  return <ConnectedApp />;
+}

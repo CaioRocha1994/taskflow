@@ -12,6 +12,11 @@ export type TaskPriority =
 
 export interface Task {
   id: string;
+  organizationId: string;
+  teamId: string;
+  teamName: string;
+  assigneeId?: string;
+  assigneeName?: string;
   title: string;
   description: string;
   status: TaskStatus;
@@ -29,6 +34,8 @@ export interface KanbanColumn {
 }
 
 export interface CreateTaskInput {
+  teamId: string;
+  assigneeId?: string;
   title: string;
   description: string;
   status: TaskStatus;
@@ -38,6 +45,8 @@ export interface CreateTaskInput {
 }
 
 export interface UpdateTaskInput {
+  teamId?: string;
+  assigneeId?: string;
   title?: string;
   description?: string;
   status?: TaskStatus;

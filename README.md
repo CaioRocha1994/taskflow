@@ -1,211 +1,103 @@
 # TaskFlow
 
-Sistema Kanban desenvolvido com React, TypeScript e Vite para gerenciamento visual de tarefas e acompanhamento de fluxo de trabalho.
-
-O projeto permite criar, editar, excluir, pesquisar, filtrar e movimentar tarefas entre diferentes etapas por meio de drag-and-drop.
-
-## Demonstração
-
-![TaskFlow Kanban](public/screenshots/taskflow-kanban.png)
-
-
-```link Vercel
-https://taskflow-nine-sooty.vercel.app
-```
+Kanban multiempresa para gestão de tarefas, equipes e usuários. O frontend usa React, TypeScript e Vite; autenticação, banco PostgreSQL, autorização por linha e sincronização usam Supabase.
 
 ## Funcionalidades
 
-- Criação de tarefas
-- Edição de tarefas
-- Exclusão com confirmação
-- Modal completo de detalhes
-- Quadro Kanban com quatro colunas
-- Drag-and-drop entre colunas
-- Filtro por status
-- Filtro por prioridade
-- Busca por título, descrição e tags
-- Prioridades baixa, média, alta e urgente
-- Datas de vencimento
-- Destaque para tarefas atrasadas
-- Identificação de tarefas que vencem hoje
-- Ordenação por prioridade e prazo
-- Persistência em localStorage
-- Interface responsiva
-- Navegação por teclado
-- Validação de dados armazenados
-- Estados vazios e feedback visual
+- Cadastro, login, confirmação de e-mail e recuperação de senha
+- Empresas isoladas (multi-tenant)
+- Equipes ou setores dentro de cada empresa
+- Papéis de proprietário, administrador e membro
+- Proprietários e administradores enxergam todas as tarefas da empresa
+- Membros enxergam somente tarefas atribuídas a eles
+- Convites de usuários por link, com validade e validação do e-mail
+- Responsável e equipe por tarefa
+- Kanban com drag-and-drop, busca, filtros, prioridades e prazos
+- Histórico de criação, edição e exclusão no banco
+- Atualização em tempo real preparada com Supabase Realtime
+- Row Level Security (RLS) em todas as tabelas expostas
 
-## Colunas do Kanban
+## Desenvolvimento local
 
-- Backlog
-- A Fazer
-- Em Andamento
-- Concluído
-
-## Tecnologias
-
-- React
-- TypeScript
-- Vite
-- CSS
-- dnd-kit
-- React Icons
-- localStorage
-
-## Arquitetura
-
-```text
-src/
-├── components/
-│   ├── DeleteTaskModal/
-│   ├── Filters/
-│   ├── Header/
-│   ├── KanbanBoard/
-│   ├── KanbanColumn/
-│   ├── TaskCard/
-│   ├── TaskDetailsModal/
-│   └── TaskModal/
-├── hooks/
-│   └── useTasks.ts
-├── services/
-│   └── taskStorage.ts
-├── types/
-│   └── task.ts
-├── utils/
-│   ├── constants.ts
-│   └── taskHelpers.ts
-├── App.tsx
-├── index.css
-└── main.tsx
-```
-
-## Regras de negócio
-
-As tarefas possuem:
-
-- título;
-- descrição;
-- status;
-- prioridade;
-- prazo;
-- tags;
-- data de criação;
-- data de atualização.
-
-As tarefas são ordenadas primeiro pela prioridade:
-
-```text
-Urgente > Alta > Média > Baixa
-```
-
-Quando duas tarefas possuem a mesma prioridade, o prazo mais próximo aparece primeiro.
-
-Tarefas concluídas deixam de ser apresentadas como atrasadas.
-
-## Persistência
-
-Os dados são armazenados no navegador utilizando:
-
-```text
-localStorage
-```
-
-Chave utilizada:
-
-```text
-taskflow:tasks
-```
-
-Antes do carregamento, os dados passam por validação para evitar falhas causadas por conteúdo inválido.
-
-## Como executar o projeto
-
-Clone o repositório:
-
-```bash
-git clone https://github.com/SEU-USUARIO/taskflow.git
-```
-
-Entre na pasta:
-
-```bash
-cd taskflow
-```
-
-Instale as dependências:
+Requisitos: Node.js 20+ e um projeto Supabase.
 
 ```bash
 npm install
 ```
 
-Execute o ambiente de desenvolvimento:
+Copie `.env.example` para `.env.local` e preencha:
+
+```env
+VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-publicavel
+```
+
+No Supabase, execute a migração [`supabase/migrations/202607130001_initial_multitenant.sql`](supabase/migrations/202607130001_initial_multitenant.sql) pelo SQL Editor. Se estiver usando a CLI:
+
+```bash
+supabase link --project-ref SEU_PROJECT_REF
+supabase db push
+```
+
+Inicie o frontend:
 
 ```bash
 npm run dev
 ```
 
-Acesse o endereço exibido no terminal:
+## Configuração do Supabase
 
-```text
-http://localhost:5173
-```
+Em **Authentication → URL Configuration**:
 
-## Build de produção
+- defina `Site URL` com a URL de produção do Vercel;
+- adicione `http://localhost:5173/**` em Redirect URLs;
+- adicione também `https://SEU-DOMINIO.vercel.app/**`.
+
+Em **Authentication → Providers → Email**, mantenha login por e-mail habilitado. Em produção, é recomendado exigir confirmação do endereço.
+
+Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na publicação do Realtime pelo painel do Supabase.
+
+## Deploy no Vercel
+
+Configure no projeto Vercel as mesmas variáveis:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+Nunca use `service_role`, secret key ou senha do banco no frontend. A chave publicável identifica o projeto; as políticas RLS são responsáveis pela autorização.
+
+Depois, faça um novo deploy. O comando de build permanece:
 
 ```bash
 npm run build
 ```
 
-Para visualizar o build localmente:
+## Modelo de permissão
 
-```bash
-npm run preview
+| Papel | Empresas/equipes | Tarefas |
+| --- | --- | --- |
+| Proprietário | Administração total | Visualiza e gerencia todas |
+| Administrador | Gerencia equipes e convites | Visualiza e gerencia todas |
+| Membro | Consulta sua empresa/equipes | Visualiza as atribuídas; altera apenas o status |
+
+As regras são aplicadas no PostgreSQL, não apenas na interface. Mesmo uma requisição manual usando a chave pública continua limitada pelas políticas RLS.
+
+## Estrutura principal
+
+```text
+src/
+├── components/       # interface, autenticação e administração
+├── hooks/            # sessão, workspace e tarefas
+├── lib/supabase.ts   # cliente Supabase
+├── types/            # tipos do domínio
+└── App.tsx           # composição dos fluxos
+supabase/
+└── migrations/       # schema, funções, triggers, índices e RLS
 ```
 
-## Decisões técnicas
+## Verificação
 
-### TypeScript
-
-O TypeScript foi utilizado para tipar tarefas, propriedades dos componentes, filtros, status e prioridades.
-
-### Componentização
-
-A interface foi dividida em componentes com responsabilidades específicas, reduzindo acoplamento e facilitando manutenção.
-
-### Hook de domínio
-
-O hook `useTasks` centraliza as regras relacionadas às tarefas:
-
-- criação;
-- atualização;
-- exclusão;
-- movimentação;
-- contadores;
-- persistência.
-
-### Drag-and-drop
-
-O drag-and-drop foi implementado com `dnd-kit`, permitindo movimentação entre as colunas do Kanban.
-
-### Responsividade
-
-Em telas menores, as colunas são apresentadas em um fluxo horizontal com rolagem controlada.
-
-## Melhorias futuras
-
-- Autenticação de usuários
-- API Back-End
-- Sincronização com banco de dados
-- Múltiplos quadros
-- Subtarefas
-- Comentários
-- Histórico de movimentações
-- Colaboração em tempo real
-- Tema claro e escuro
-- Testes automatizados
-
-## Autor
-
-Desenvolvido por **Caio Rocha**.
-
-Projeto criado para demonstração de competências em desenvolvimento Front-End, React, TypeScript, arquitetura de componentes, gerenciamento de estado, persistência local e experiência do usuário.
+```bash
+npm run lint
+npm run build
+```

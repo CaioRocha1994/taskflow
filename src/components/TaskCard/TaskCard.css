@@ -203,3 +203,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+.task-card__assignment {
+  display: block;
+  margin-top: 10px;
+  color: #60a5fa;
+  font-size: 0.76rem;
+  font-weight: 700;
+}

@@ -112,6 +112,21 @@ main {
   padding: 32px 0 48px;
 }
 
+.app-feedback {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 13px 16px;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 12px;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.2);
+}
+
+.app-feedback button { color: #fff; background: transparent; font-weight: 800; }
+.board-loading { margin-top: 28px; padding: 50px; text-align: center; color: #94a3b8; }
+
 ::selection {
   color: #ffffff;
   background: rgba(37, 99, 235, 0.7);
