@@ -23,6 +23,7 @@ export interface Task {
   priority: TaskPriority;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
   dueDate?: string;
   tags: string[];
 }

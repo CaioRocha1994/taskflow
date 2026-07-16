@@ -123,6 +123,12 @@
   background: rgba(30, 41, 59, 0.92);
 }
 
+.taskflow-header__button--active {
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #dbeafe;
+  background: rgba(30, 64, 175, 0.28);
+}
+
 .taskflow-header__metrics {
   display: grid;
   grid-template-columns: 180px 180px minmax(240px, 1fr);

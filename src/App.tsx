@@ -3,6 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { AccountSettings } from "./components/AccountSettings/AccountSettings";
 import { ConfigurationRequired, AuthScreen, LoadingScreen, Onboarding, UpdatePasswordScreen } from "./components/Access/Access";
 import { DeleteTaskModal } from "./components/DeleteTaskModal/DeleteTaskModal";
+import { Dashboard } from "./components/Dashboard/Dashboard";
 import { Filters } from "./components/Filters/Filters";
 import { Header } from "./components/Header/Header";
 import { KanbanBoard } from "./components/KanbanBoard/KanbanBoard";
@@ -92,6 +93,7 @@ function TaskFlowWorkspace({
   const [taskInDetails, setTaskInDetails] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
+  const [activeView, setActiveView] = useState<"board" | "dashboard">("board");
   const [operationError, setOperationError] = useState(inviteError);
 
   const filteredTasks = useMemo(() => {
@@ -138,10 +140,12 @@ function TaskFlowWorkspace({
         memberships={workspace.memberships}
         activeOrganizationId={workspace.activeOrganizationId}
         currentUserId={session.user.id}
+        isDashboardOpen={activeView === "dashboard"}
         canManage={canManage}
         onCreateTask={() => openCreateModal()}
         onSettings={() => setIsSettingsOpen(true)}
         onAccountSettings={() => setIsAccountSettingsOpen(true)}
+        onToggleDashboard={() => setActiveView((current) => current === "board" ? "dashboard" : "board")}
         onOpenNotificationTask={(taskId) => {
           const task = taskStore.tasks.find((item) => item.id === taskId);
           if (task) setTaskInDetails(task);
@@ -158,26 +162,44 @@ function TaskFlowWorkspace({
         </div>
       )}
 
-      <Filters
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        priorityFilter={priorityFilter}
-        onSearchChange={setSearchTerm}
-        onStatusChange={setStatusFilter}
-        onPriorityChange={setPriorityFilter}
-        onClearFilters={() => { setSearchTerm(""); setStatusFilter("all"); setPriorityFilter("all"); }}
-      />
+      {activeView === "board" && (
+        <>
+          <Filters
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            priorityFilter={priorityFilter}
+            onSearchChange={setSearchTerm}
+            onStatusChange={setStatusFilter}
+            onPriorityChange={setPriorityFilter}
+            onClearFilters={() => { setSearchTerm(""); setStatusFilter("all"); setPriorityFilter("all"); }}
+          />
 
-      {taskStore.isLoading ? <section className="board-loading">Carregando tarefas…</section> : (
-        <KanbanBoard
-          tasks={filteredTasks}
-          canManage={canManage}
-          onCreateTask={openCreateModal}
-          onEditTask={openEditModal}
-          onDeleteTask={(task) => setTaskPendingDeletion(task)}
-          onOpenTaskDetails={setTaskInDetails}
-          onMoveTask={(taskId, status) => void taskStore.moveTask(taskId, status).catch((error: unknown) => setOperationError(error instanceof Error ? error.message : "Não foi possível mover a tarefa."))}
-        />
+          {taskStore.isLoading ? <section className="board-loading">Carregando tarefas…</section> : (
+            <KanbanBoard
+              tasks={filteredTasks}
+              canManage={canManage}
+              onCreateTask={openCreateModal}
+              onEditTask={openEditModal}
+              onDeleteTask={(task) => setTaskPendingDeletion(task)}
+              onOpenTaskDetails={setTaskInDetails}
+              onMoveTask={(taskId, status) => void taskStore.moveTask(taskId, status).catch((error: unknown) => setOperationError(error instanceof Error ? error.message : "Não foi possível mover a tarefa."))}
+            />
+          )}
+        </>
+      )}
+
+      {activeView === "dashboard" && (
+        taskStore.isLoading ? <section className="board-loading">Carregando indicadores…</section> : (
+          <Dashboard
+            tasks={taskStore.tasks}
+            teams={workspace.teams}
+            members={workspace.members}
+            companyName={membership.organization.name}
+            currentUserId={session.user.id}
+            canManage={canManage}
+            onOpenTask={setTaskInDetails}
+          />
+        )
       )}
 
       <TaskModal

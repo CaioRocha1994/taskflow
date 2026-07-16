@@ -1,4 +1,4 @@
-import { FiLogOut, FiPlus, FiSettings, FiUser } from "react-icons/fi";
+import { FiBarChart2, FiColumns, FiLogOut, FiPlus, FiSettings, FiUser } from "react-icons/fi";
 import type { Membership } from "../../types/workspace";
 import { NotificationsMenu } from "../NotificationsMenu/NotificationsMenu";
 import "./Header.css";
@@ -12,10 +12,12 @@ interface HeaderProps {
   memberships: Membership[];
   activeOrganizationId: string;
   currentUserId: string;
+  isDashboardOpen: boolean;
   canManage: boolean;
   onCreateTask: () => void;
   onSettings: () => void;
   onAccountSettings: () => void;
+  onToggleDashboard: () => void;
   onOpenNotificationTask: (taskId: string) => void;
   onOrganizationChange: (id: string) => void;
   onSignOut: () => void;
@@ -30,10 +32,12 @@ export function Header({
   memberships,
   activeOrganizationId,
   currentUserId,
+  isDashboardOpen,
   canManage,
   onCreateTask,
   onSettings,
   onAccountSettings,
+  onToggleDashboard,
   onOpenNotificationTask,
   onOrganizationChange,
   onSignOut,
@@ -65,6 +69,14 @@ export function Header({
               <FiSettings size={18} /> Administrar
             </button>
           )}
+          <button
+            type="button"
+            className={`taskflow-header__button taskflow-header__button--secondary${isDashboardOpen ? " taskflow-header__button--active" : ""}`}
+            onClick={onToggleDashboard}
+          >
+            {isDashboardOpen ? <FiColumns size={18} /> : <FiBarChart2 size={18} />}
+            {isDashboardOpen ? "Voltar ao quadro" : "Dashboard"}
+          </button>
           <NotificationsMenu
             organizationId={activeOrganizationId}
             userId={currentUserId}

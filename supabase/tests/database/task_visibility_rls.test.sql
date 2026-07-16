@@ -1,6 +1,6 @@
 begin;
 
-select plan(14);
+select plan(18);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('10000000-0000-4000-8000-000000000001', 'owner-taskflow-test@example.com', '{"full_name":"Owner Test"}'),
@@ -44,6 +44,22 @@ select is((select count(*) from public.tasks where organization_id = '20000000-0
 select is((select count(*) from public.profiles), 2::bigint, 'Membro visualiza somente perfis da própria empresa');
 select lives_ok($$update public.tasks set status = 'in-progress' where id = '40000000-0000-4000-8000-000000000001'$$, 'Membro pode alterar o status da própria tarefa');
 select throws_ok($$update public.tasks set title = 'Alteração indevida' where id = '40000000-0000-4000-8000-000000000001'$$, 'P0001', 'members may only update the status of assigned tasks', 'Membro não pode alterar outros campos');
+select lives_ok(
+  $$update public.tasks set status = 'done' where id = '40000000-0000-4000-8000-000000000001'$$,
+  'Membro pode concluir a própria tarefa'
+);
+select ok(
+  (select completed_at is not null from public.tasks where id = '40000000-0000-4000-8000-000000000001'),
+  'Conclusão registra a data automaticamente'
+);
+select lives_ok(
+  $$update public.tasks set status = 'todo' where id = '40000000-0000-4000-8000-000000000001'$$,
+  'Membro pode reabrir a própria tarefa'
+);
+select ok(
+  (select completed_at is null from public.tasks where id = '40000000-0000-4000-8000-000000000001'),
+  'Reabertura remove a data de conclusão'
+);
 select results_eq(
   $$with deleted as (delete from public.tasks where id = '40000000-0000-4000-8000-000000000001' returning id) select count(*) from deleted$$,
   $$values (0::bigint)$$,

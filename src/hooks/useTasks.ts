@@ -16,6 +16,7 @@ interface TaskRow {
   tags: string[];
   created_at: string;
   updated_at: string;
+  completed_at: string | null;
 }
 
 function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task {
@@ -36,6 +37,7 @@ function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task 
     tags: row.tags ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    completedAt: row.completed_at ?? undefined,
   };
 }
 
