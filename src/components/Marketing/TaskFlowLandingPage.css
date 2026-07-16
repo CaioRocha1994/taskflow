@@ -1,0 +1,1011 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap");
+
+.taskflow-marketing {
+  min-height: 100vh;
+  color: #18181b;
+  background: #f4f4f5;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.taskflow-marketing *,
+.taskflow-marketing *::before,
+.taskflow-marketing *::after {
+  box-sizing: border-box;
+}
+
+.taskflow-marketing__container {
+  width: min(100% - 48px, 1200px);
+  margin-inline: auto;
+}
+
+.taskflow-marketing__header {
+  position: sticky;
+  z-index: 100;
+  top: 0;
+  height: 84px;
+  border-bottom: 1px solid rgba(214, 214, 217, 0.8);
+  background: rgba(244, 244, 245, 0.88);
+  backdrop-filter: blur(18px);
+}
+
+.taskflow-marketing__nav {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.taskflow-marketing__brand {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 11px;
+  color: #18181b;
+  text-decoration: none;
+}
+
+.taskflow-marketing__brand-symbol {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px 5px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff3b45, #d71920 50%, #a70f16);
+  box-shadow: 0 14px 34px rgba(215, 25, 32, 0.25);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  transform: rotate(-2deg);
+}
+
+.taskflow-marketing__brand > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.taskflow-marketing__brand strong {
+  font-family: "Manrope", sans-serif;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.taskflow-marketing__brand strong b {
+  color: #d71920;
+}
+
+.taskflow-marketing__brand small {
+  color: #777980;
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.taskflow-marketing__nav nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.taskflow-marketing__nav nav a,
+.taskflow-marketing__nav-actions > a:first-child {
+  color: #57595f;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.taskflow-marketing__nav nav a:hover,
+.taskflow-marketing__nav-actions > a:first-child:hover {
+  color: #d71920;
+}
+
+.taskflow-marketing__nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.taskflow-marketing__nav-cta {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border-radius: 12px;
+  color: #fff;
+  background: #111214;
+  box-shadow: 0 12px 28px rgba(17, 18, 20, 0.15);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: 180ms ease;
+}
+
+.taskflow-marketing__nav-cta:hover {
+  background: #d71920;
+  box-shadow: 0 16px 38px rgba(215, 25, 32, 0.25);
+  transform: translateY(-2px);
+}
+
+.taskflow-marketing__main {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.taskflow-marketing__hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(72px, 8vw, 118px) 0 96px;
+  background:
+    linear-gradient(180deg, #f4f4f5 0%, #fff 72%, #fff 100%);
+}
+
+.taskflow-marketing__hero-glow {
+  position: absolute;
+  top: -240px;
+  right: -180px;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(215, 25, 32, 0.16), transparent 68%);
+  pointer-events: none;
+}
+
+.taskflow-marketing__hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(520px, 1.15fr);
+  align-items: center;
+  gap: 64px;
+}
+
+.taskflow-marketing__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 13px 5px 6px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  color: #9f1017;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(90, 17, 20, 0.06);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.taskflow-marketing__kicker span {
+  display: grid;
+  width: 30px;
+  height: 27px;
+  place-items: center;
+  border-radius: 8px 3px;
+  color: #fff;
+  background: #111214;
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+}
+
+.taskflow-marketing__hero h1 {
+  max-width: 700px;
+  margin-top: 24px;
+  color: #111214;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(3.1rem, 5.3vw, 5.45rem);
+  font-weight: 800;
+  letter-spacing: -0.068em;
+  line-height: 0.98;
+}
+
+.taskflow-marketing__hero h1 span {
+  display: block;
+  color: #d71920;
+}
+
+.taskflow-marketing__hero-content > p {
+  max-width: 650px;
+  margin-top: 25px;
+  color: #57595f;
+  font-size: 1.04rem;
+  line-height: 1.75;
+}
+
+.taskflow-marketing__hero-actions,
+.taskflow-marketing__trust {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.taskflow-marketing__hero-actions {
+  gap: 12px;
+  margin-top: 31px;
+}
+
+.taskflow-marketing__button {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 21px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: 180ms ease;
+}
+
+.taskflow-marketing__button:hover {
+  transform: translateY(-2px);
+}
+
+.taskflow-marketing__button--primary {
+  color: #fff;
+  background: linear-gradient(135deg, #ff3b45, #d71920 56%, #a70f16);
+  box-shadow: 0 16px 38px rgba(215, 25, 32, 0.27);
+}
+
+.taskflow-marketing__button--secondary {
+  border-color: #d6d6d9;
+  color: #27272a;
+  background: #fff;
+}
+
+.taskflow-marketing__trust {
+  gap: 18px;
+  margin-top: 24px;
+  color: #57595f;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.taskflow-marketing__trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.taskflow-marketing__trust svg {
+  color: #d71920;
+}
+
+.taskflow-marketing__hero-visual {
+  position: relative;
+  min-width: 0;
+}
+
+.taskflow-marketing__browser,
+.taskflow-marketing__showcase-image {
+  overflow: hidden;
+  border: 1px solid rgba(17, 18, 20, 0.13);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 32px 90px rgba(17, 18, 20, 0.18);
+}
+
+.taskflow-marketing__browser {
+  transform: perspective(1500px) rotateY(-3deg) rotateX(1deg);
+}
+
+.taskflow-marketing__browser-bar,
+.taskflow-marketing__showcase-image > div {
+  display: flex;
+  min-height: 41px;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border-bottom: 1px solid #e6e6e8;
+}
+
+.taskflow-marketing__browser-bar > span,
+.taskflow-marketing__showcase-image > div > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d6d6d9;
+}
+
+.taskflow-marketing__browser-bar > span:first-child,
+.taskflow-marketing__showcase-image > div > span:first-child { background: #ff655f; }
+.taskflow-marketing__browser-bar > span:nth-child(2),
+.taskflow-marketing__showcase-image > div > span:nth-child(2) { background: #f6c44f; }
+.taskflow-marketing__browser-bar > span:nth-child(3),
+.taskflow-marketing__showcase-image > div > span:nth-child(3) { background: #64c66d; }
+
+.taskflow-marketing__browser-bar small,
+.taskflow-marketing__showcase-image > div small {
+  margin-left: 6px;
+  color: #777980;
+  font-size: 0.62rem;
+}
+
+.taskflow-marketing__browser img,
+.taskflow-marketing__showcase-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.6;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.taskflow-marketing__float-card {
+  position: absolute;
+  display: flex;
+  min-width: 180px;
+  align-items: center;
+  gap: 11px;
+  padding: 13px;
+  border: 1px solid rgba(17, 18, 20, 0.1);
+  border-radius: 14px;
+  color: #d71920;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 44px rgba(17, 18, 20, 0.15);
+}
+
+.taskflow-marketing__float-card--team {
+  top: 58px;
+  left: -34px;
+}
+
+.taskflow-marketing__float-card--alert {
+  right: -20px;
+  bottom: -31px;
+}
+
+.taskflow-marketing__float-card span {
+  display: flex;
+  flex-direction: column;
+}
+
+.taskflow-marketing__float-card small {
+  color: #777980;
+  font-size: 0.61rem;
+}
+
+.taskflow-marketing__float-card strong {
+  color: #27272a;
+  font-size: 0.76rem;
+}
+
+.taskflow-marketing__proof {
+  border-block: 1px solid #e6e6e8;
+  background: #fff;
+}
+
+.taskflow-marketing__proof-content {
+  display: flex;
+  min-height: 102px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.taskflow-marketing__proof p {
+  max-width: 300px;
+  color: #777980;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.55;
+  text-transform: uppercase;
+}
+
+.taskflow-marketing__proof-content > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(22px, 4vw, 54px);
+}
+
+.taskflow-marketing__proof-content > div span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #3f3f46;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.taskflow-marketing__proof svg {
+  color: #d71920;
+}
+
+.taskflow-marketing__section {
+  padding: 112px 0;
+  background: #fff;
+}
+
+.taskflow-marketing__heading {
+  max-width: 760px;
+}
+
+.taskflow-marketing__heading--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.taskflow-marketing__heading > span,
+.taskflow-marketing__showcase-copy > span,
+.taskflow-marketing__commercial > div:first-child > span,
+.taskflow-marketing__security-grid > div:first-child > span {
+  color: #d71920;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.taskflow-marketing__heading h2,
+.taskflow-marketing__showcase-copy h2,
+.taskflow-marketing__commercial h2,
+.taskflow-marketing__security h2,
+.taskflow-marketing__final-cta h2 {
+  margin-top: 13px;
+  color: #18181b;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(2.15rem, 4vw, 3.65rem);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+
+.taskflow-marketing__heading p,
+.taskflow-marketing__showcase-copy > p,
+.taskflow-marketing__commercial p,
+.taskflow-marketing__security-grid > div:first-child > p {
+  margin-top: 16px;
+  color: #57595f;
+  line-height: 1.75;
+}
+
+.taskflow-marketing__features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 52px;
+}
+
+.taskflow-marketing__features article {
+  min-height: 235px;
+  padding: 27px;
+  border: 1px solid #e6e6e8;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, #f8f8f9);
+  box-shadow: 0 12px 32px rgba(17, 18, 20, 0.05);
+}
+
+.taskflow-marketing__features article > span {
+  display: grid;
+  width: 49px;
+  height: 49px;
+  place-items: center;
+  border-radius: 14px 5px;
+  color: #d71920;
+  background: #fee2e2;
+  font-size: 1.25rem;
+}
+
+.taskflow-marketing__features h3,
+.taskflow-marketing__use-cases h3 {
+  margin-top: 21px;
+  color: #27272a;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.04rem;
+}
+
+.taskflow-marketing__features p,
+.taskflow-marketing__use-cases p {
+  margin-top: 10px;
+  color: #777980;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.taskflow-marketing__showcase-section {
+  border-block: 1px solid #dedee1;
+  background: #e9e9eb;
+}
+
+.taskflow-marketing__showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(340px, 0.72fr);
+  align-items: center;
+  gap: 64px;
+}
+
+.taskflow-marketing__showcase-copy ul {
+  display: grid;
+  gap: 11px;
+  margin-top: 24px;
+}
+
+.taskflow-marketing__showcase-copy li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #3f3f46;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.taskflow-marketing__showcase-copy li svg {
+  color: #d71920;
+}
+
+.taskflow-marketing__showcase-copy > a,
+.taskflow-marketing__faq-grid .taskflow-marketing__heading > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 25px;
+  color: #d71920;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.taskflow-marketing__use-cases {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.taskflow-marketing__use-cases article {
+  padding: 30px;
+  border-top: 3px solid #d71920;
+  background: #f8f8f9;
+}
+
+.taskflow-marketing__use-cases article > span {
+  color: #d71920;
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.taskflow-marketing__security {
+  padding: 112px 0;
+  overflow: hidden;
+  color: #fafafa;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(215, 25, 32, 0.23), transparent 30%),
+    linear-gradient(145deg, #111214, #1b1d21 58%, #24262b);
+}
+
+.taskflow-marketing__security-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+  align-items: center;
+  gap: 72px;
+}
+
+.taskflow-marketing__security h2 {
+  color: #fff;
+}
+
+.taskflow-marketing__security-grid > div:first-child > p {
+  color: #d4d4d8;
+}
+
+.taskflow-marketing__security-points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.taskflow-marketing__security-points > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 17px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.taskflow-marketing__security-points svg {
+  margin-bottom: 13px;
+  color: #ff3b45;
+  font-size: 1.2rem;
+}
+
+.taskflow-marketing__security-points strong {
+  color: #fff;
+  font-size: 0.78rem;
+}
+
+.taskflow-marketing__security-points small {
+  margin-top: 5px;
+  color: #9b9ca2;
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+.taskflow-marketing__security-card {
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px 8px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+}
+
+.taskflow-marketing__security-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 17px 6px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff3b45, #d71920);
+  font-size: 1.45rem;
+  box-shadow: 0 16px 38px rgba(215, 25, 32, 0.3);
+}
+
+.taskflow-marketing__security-card > small {
+  display: block;
+  margin-top: 27px;
+  color: #9b9ca2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.taskflow-marketing__security-card > strong {
+  display: block;
+  margin-top: 6px;
+  color: #fff;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.65rem;
+}
+
+.taskflow-marketing__security-card > p {
+  margin-top: 12px;
+  color: #b8b8bd;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.taskflow-marketing__security-card > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.taskflow-marketing__security-card > div span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  color: #d4d4d8;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.65rem;
+}
+
+.taskflow-marketing__security-card > div svg {
+  color: #ff3b45;
+}
+
+.taskflow-marketing__commercial {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
+  gap: 62px;
+  padding: clamp(35px, 6vw, 70px);
+  border-radius: 27px 9px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(255, 59, 69, 0.2), transparent 30%),
+    #111214;
+}
+
+.taskflow-marketing__commercial h2 {
+  color: #fff;
+}
+
+.taskflow-marketing__commercial p {
+  color: #b8b8bd;
+}
+
+.taskflow-marketing__commercial > div:first-child > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 29px;
+}
+
+.taskflow-marketing__button--light {
+  color: #d71920;
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+}
+
+.taskflow-marketing__commercial-link {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.taskflow-marketing__numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.taskflow-marketing__numbers article {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.taskflow-marketing__numbers strong {
+  color: #ff3b45;
+  font-size: 2.15rem;
+  letter-spacing: -0.06em;
+}
+
+.taskflow-marketing__numbers span {
+  margin-top: 4px;
+  color: #d4d4d8;
+  font-size: 0.7rem;
+}
+
+.taskflow-marketing__faq-section {
+  border-top: 1px solid #e6e6e8;
+  background: #f8f8f9;
+}
+
+.taskflow-marketing__faq-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.28fr);
+  gap: 80px;
+}
+
+.taskflow-marketing__faq {
+  border-top: 1px solid #d6d6d9;
+}
+
+.taskflow-marketing__faq details {
+  border-bottom: 1px solid #d6d6d9;
+}
+
+.taskflow-marketing__faq summary {
+  display: flex;
+  min-height: 72px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #27272a;
+  font-size: 0.88rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.taskflow-marketing__faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.taskflow-marketing__faq summary span {
+  color: #d71920;
+  font-size: 1.25rem;
+  transition: transform 180ms ease;
+}
+
+.taskflow-marketing__faq details[open] summary span {
+  transform: rotate(45deg);
+}
+
+.taskflow-marketing__faq details p {
+  padding: 0 40px 24px 0;
+  color: #777980;
+  font-size: 0.83rem;
+  line-height: 1.7;
+}
+
+.taskflow-marketing__final-cta {
+  padding: 72px 0;
+  color: #fff;
+  background: linear-gradient(120deg, #ff3b45, #d71920 55%, #a70f16);
+}
+
+.taskflow-marketing__final-cta > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.taskflow-marketing__final-cta span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.taskflow-marketing__final-cta h2 {
+  max-width: 780px;
+  color: #fff;
+}
+
+.taskflow-marketing__final-cta .taskflow-marketing__button {
+  flex-shrink: 0;
+}
+
+.taskflow-marketing__footer {
+  padding: 42px 0;
+  border-top: 1px solid #2f3136;
+  color: #d4d4d8;
+  background: #111214;
+}
+
+.taskflow-marketing__footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.taskflow-marketing__footer .taskflow-marketing__brand {
+  color: #fff;
+}
+
+.taskflow-marketing__footer p {
+  color: #777980;
+  font-size: 0.72rem;
+}
+
+.taskflow-marketing__footer > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.taskflow-marketing__footer > div > div a {
+  color: #d4d4d8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.taskflow-marketing__footer > div > div a:hover {
+  color: #ff3b45;
+}
+
+@media (max-width: 1080px) {
+  .taskflow-marketing__hero-grid,
+  .taskflow-marketing__showcase,
+  .taskflow-marketing__security-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .taskflow-marketing__hero-visual {
+    max-width: 900px;
+  }
+
+  .taskflow-marketing__nav nav {
+    display: none;
+  }
+
+  .taskflow-marketing__float-card--team {
+    left: 12px;
+  }
+
+  .taskflow-marketing__float-card--alert {
+    right: 12px;
+  }
+}
+
+@media (max-width: 820px) {
+  .taskflow-marketing__features,
+  .taskflow-marketing__use-cases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .taskflow-marketing__proof-content,
+  .taskflow-marketing__final-cta > div,
+  .taskflow-marketing__footer > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .taskflow-marketing__security-points {
+    grid-template-columns: 1fr;
+  }
+
+  .taskflow-marketing__commercial,
+  .taskflow-marketing__faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .taskflow-marketing__container {
+    width: min(100% - 28px, 1200px);
+  }
+
+  .taskflow-marketing__header {
+    height: 72px;
+  }
+
+  .taskflow-marketing__brand small,
+  .taskflow-marketing__nav-actions > a:first-child {
+    display: none;
+  }
+
+  .taskflow-marketing__nav-cta {
+    min-height: 42px;
+    padding: 0 13px;
+  }
+
+  .taskflow-marketing__hero {
+    padding-top: 58px;
+  }
+
+  .taskflow-marketing__hero h1 {
+    font-size: clamp(2.7rem, 14vw, 4rem);
+  }
+
+  .taskflow-marketing__hero-actions,
+  .taskflow-marketing__button {
+    width: 100%;
+  }
+
+  .taskflow-marketing__float-card {
+    display: none;
+  }
+
+  .taskflow-marketing__proof {
+    padding: 30px 0;
+  }
+
+  .taskflow-marketing__proof-content > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .taskflow-marketing__section,
+  .taskflow-marketing__security {
+    padding: 78px 0;
+  }
+
+  .taskflow-marketing__features,
+  .taskflow-marketing__use-cases,
+  .taskflow-marketing__numbers {
+    grid-template-columns: 1fr;
+  }
+
+  .taskflow-marketing__features article {
+    min-height: auto;
+  }
+
+  .taskflow-marketing__commercial {
+    padding: 28px 20px;
+  }
+
+  .taskflow-marketing__final-cta .taskflow-marketing__button {
+    width: 100%;
+  }
+}

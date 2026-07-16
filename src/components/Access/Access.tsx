@@ -3,13 +3,23 @@ import { FiArrowLeft, FiCheck, FiLock, FiMail, FiUser } from "react-icons/fi";
 import { getSupabase } from "../../lib/supabase";
 import { getAuthErrorMessage } from "../../utils/authErrors";
 import { getPasswordRequirements, isStrongPassword } from "../../utils/password";
+import { taskFlowUrl, TASKFLOW_PATHS } from "../../utils/routes";
 import "./Access.css";
+
+function AccessBrand() {
+  return (
+    <a className="access-brand" href={TASKFLOW_PATHS.landing} aria-label="Voltar para a página do TaskFlow">
+      <span>CR</span>
+      <span><strong>C.R TECH</strong><small>TaskFlow</small></span>
+    </a>
+  );
+}
 
 export function ConfigurationRequired() {
   return (
     <main className="access-shell">
       <section className="access-card">
-        <div className="access-brand">TF</div>
+        <AccessBrand />
         <h1>Conecte o Supabase</h1>
         <p>Copie <code>.env.example</code> para <code>.env.local</code> e informe a URL e a chave publicável do projeto.</p>
       </section>
@@ -66,7 +76,7 @@ export function AuthScreen() {
     const client = getSupabase();
 
     if (mode === "recovery") {
-      const redirectTo = new URL("/?recovery=1", window.location.origin).toString();
+      const redirectTo = taskFlowUrl(TASKFLOW_PATHS.login, "?recovery=1");
       const { error: resetError } = await client.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
       setIsSubmitting(false);
       if (resetError) setError(getAuthErrorMessage(resetError, "Não foi possível enviar o link de recuperação."));
@@ -92,7 +102,7 @@ export function AuthScreen() {
       : await client.auth.signUp({
           email: email.trim().toLowerCase(),
           password,
-          options: { data: { full_name: fullName.trim() }, emailRedirectTo: window.location.origin },
+          options: { data: { full_name: fullName.trim() }, emailRedirectTo: taskFlowUrl(TASKFLOW_PATHS.app) },
         });
 
     setIsSubmitting(false);
@@ -113,7 +123,7 @@ export function AuthScreen() {
   return (
     <main className="access-shell">
       <section className="access-card">
-        <div className="access-brand">TF</div>
+        <AccessBrand />
         <span className="access-eyebrow">TaskFlow profissional</span>
         <h1>{title}</h1>
         <p>{description}</p>
@@ -189,7 +199,7 @@ export function UpdatePasswordScreen({ onComplete }: { onComplete: () => void })
     setIsSubmitting(false);
     if (updateError) setError(getAuthErrorMessage(updateError, "Não foi possível atualizar a senha."));
     else {
-      window.history.replaceState({}, "", window.location.pathname);
+      window.history.replaceState({}, "", TASKFLOW_PATHS.app);
       onComplete();
     }
   }
@@ -197,7 +207,7 @@ export function UpdatePasswordScreen({ onComplete }: { onComplete: () => void })
   return (
     <main className="access-shell">
       <section className="access-card">
-        <div className="access-brand">TF</div>
+        <AccessBrand />
         <span className="access-eyebrow">Segurança da conta</span>
         <h1>Defina uma nova senha</h1>
         <p>Crie uma senha forte e diferente das utilizadas em outros serviços.</p>
@@ -234,7 +244,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   return (
     <main className="access-shell">
       <section className="access-card">
-        <div className="access-brand">TF</div>
+        <AccessBrand />
         <span className="access-eyebrow">Primeiros passos</span>
         <h1>Configure sua empresa</h1>
         <p>Você será o proprietário e poderá convidar administradores e membros.</p>

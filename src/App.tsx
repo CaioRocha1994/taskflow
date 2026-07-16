@@ -7,6 +7,7 @@ import { Dashboard } from "./components/Dashboard/Dashboard";
 import { Filters } from "./components/Filters/Filters";
 import { Header } from "./components/Header/Header";
 import { KanbanBoard } from "./components/KanbanBoard/KanbanBoard";
+import { TaskFlowLandingPage } from "./components/Marketing/TaskFlowLandingPage";
 import { TaskDetailsModal } from "./components/TaskDetailsModal/TaskDetailsModal";
 import { TaskModal } from "./components/TaskModal/TaskModal";
 import { WorkspaceSettings } from "./components/WorkspaceSettings/WorkspaceSettings";
@@ -15,6 +16,7 @@ import { useTasks } from "./hooks/useTasks";
 import { useWorkspace } from "./hooks/useWorkspace";
 import { getSupabase, isSupabaseConfigured } from "./lib/supabase";
 import type { Task, TaskPriority, TaskStatus } from "./types/task";
+import { isTaskFlowLandingPath, isTaskFlowLoginPath, TASKFLOW_PATHS } from "./utils/routes";
 
 const ROLE_LABELS = { owner: "Proprietário", admin: "Administrador", member: "Membro" } as const;
 
@@ -230,13 +232,41 @@ function TaskFlowWorkspace({
 
 function ConnectedApp() {
   const { session, isLoading, isPasswordRecovery, setIsPasswordRecovery, signOut } = useAuth();
+
+  useEffect(() => {
+    document.title = session ? "TaskFlow | Painel" : "Entrar | TaskFlow";
+    const robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')
+      ?? document.head.appendChild(document.createElement("meta"));
+    robots.name = "robots";
+    robots.content = "noindex, nofollow";
+  }, [session]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (session && isTaskFlowLoginPath()) {
+      window.history.replaceState({}, "", TASKFLOW_PATHS.app);
+    } else if (!session && !isTaskFlowLoginPath()) {
+      window.history.replaceState({}, "", TASKFLOW_PATHS.login);
+    }
+  }, [isLoading, session]);
+
   if (isLoading) return <LoadingScreen />;
   if (!session) return <AuthScreen />;
   if (isPasswordRecovery) return <UpdatePasswordScreen onComplete={() => setIsPasswordRecovery(false)} />;
-  return <AuthenticatedApp session={session} onSignOut={signOut} />;
+  return (
+    <AuthenticatedApp
+      session={session}
+      onSignOut={async () => {
+        await signOut();
+        window.history.replaceState({}, "", TASKFLOW_PATHS.login);
+      }}
+    />
+  );
 }
 
 export default function App() {
+  if (isTaskFlowLandingPath()) return <TaskFlowLandingPage />;
   if (!isSupabaseConfigured) return <ConfigurationRequired />;
   return <ConnectedApp />;
 }

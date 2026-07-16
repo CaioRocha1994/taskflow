@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import { getSupabase } from "../../lib/supabase";
 import type { MembershipRole, Team, WorkspaceMember } from "../../types/workspace";
+import { TASKFLOW_PATHS } from "../../utils/routes";
 import "./WorkspaceSettings.css";
 
 interface WorkspaceSettingsProps {
@@ -40,7 +41,7 @@ const ROLE_LABELS: Record<MembershipRole, string> = {
 };
 
 function invitationUrl(token: string) {
-  return `${window.location.origin}/?invite=${token}`;
+  return `${window.location.origin}${TASKFLOW_PATHS.app}?invite=${token}`;
 }
 
 export function WorkspaceSettings({

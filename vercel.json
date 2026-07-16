@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/taskflow/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/taskflow/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/taskflow",
+      "destination": "/index.html"
+    }
+  ]
+}
