@@ -10,7 +10,6 @@ function AccessBrand() {
   return (
     <a className="access-brand" href={TASKFLOW_PATHS.landing} aria-label="Voltar para a página do TaskFlow">
       <span>CR</span>
-      <span><strong>C.R TECH</strong><small>TaskFlow</small></span>
     </a>
   );
 }
@@ -124,7 +123,6 @@ export function AuthScreen() {
     <main className="access-shell">
       <section className="access-card">
         <AccessBrand />
-        <span className="access-eyebrow">TaskFlow profissional</span>
         <h1>{title}</h1>
         <p>{description}</p>
 

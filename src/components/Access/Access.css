@@ -77,28 +77,6 @@
   transform: rotate(-2deg);
 }
 
-.access-brand > span:last-child {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.access-brand strong {
-  color: #18181b;
-  font-family: "Manrope", sans-serif;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.access-brand small {
-  color: #777980;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .access-eyebrow {
   color: #d71920;
   font-size: 0.72rem;
