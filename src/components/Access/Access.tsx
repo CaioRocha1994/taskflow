@@ -10,6 +10,7 @@ function AccessBrand() {
   return (
     <a className="access-brand" href={TASKFLOW_PATHS.landing} aria-label="Voltar para a página do TaskFlow">
       <span>CR</span>
+      <span className="access-brand__product"><strong>TaskFlow</strong> — Gestor de Tarefas</span>
     </a>
   );
 }

@@ -77,6 +77,21 @@
   transform: rotate(-2deg);
 }
 
+.access-brand__product {
+  color: #57595f;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.access-brand__product strong {
+  color: #18181b;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
 .access-eyebrow {
   color: #d71920;
   font-size: 0.72rem;
