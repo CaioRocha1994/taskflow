@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { FiCheck, FiLock, FiSave, FiUser, FiX } from "react-icons/fi";
 import { getSupabase } from "../../lib/supabase";
+import { getAuthErrorMessage } from "../../utils/authErrors";
 import { getPasswordRequirements, isStrongPassword } from "../../utils/password";
 import "./AccountSettings.css";
 
@@ -45,7 +46,7 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
     const { error: updateError } = await getSupabase().auth.updateUser({ data: { full_name: fullName.trim() } });
     setBusyKey("");
 
-    if (updateError) setError(updateError.message);
+    if (updateError) setError(getAuthErrorMessage(updateError, "Não foi possível atualizar o perfil."));
     else {
       setMessage("Nome atualizado com sucesso.");
       onChanged();
@@ -68,7 +69,7 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
     setBusyKey("password");
     const { error: updateError } = await getSupabase().auth.updateUser({ password });
     setBusyKey("");
-    if (updateError) setError(updateError.message);
+    if (updateError) setError(getAuthErrorMessage(updateError, "Não foi possível alterar a senha."));
     else {
       setPassword("");
       setConfirmation("");

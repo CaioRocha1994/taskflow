@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { FiArrowLeft, FiCheck, FiLock, FiMail, FiUser } from "react-icons/fi";
 import { getSupabase } from "../../lib/supabase";
+import { getAuthErrorMessage } from "../../utils/authErrors";
 import { getPasswordRequirements, isStrongPassword } from "../../utils/password";
 import "./Access.css";
 
@@ -68,7 +69,7 @@ export function AuthScreen() {
       const redirectTo = new URL("/?recovery=1", window.location.origin).toString();
       const { error: resetError } = await client.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
       setIsSubmitting(false);
-      if (resetError) setError(resetError.message);
+      if (resetError) setError(getAuthErrorMessage(resetError, "Não foi possível enviar o link de recuperação."));
       else setMessage("Enviamos um link seguro para redefinir sua senha. Verifique também a caixa de spam.");
       return;
     }
@@ -96,7 +97,7 @@ export function AuthScreen() {
 
     setIsSubmitting(false);
     if (result.error) {
-      setError(result.error.message);
+      setError(getAuthErrorMessage(result.error));
       return;
     }
     if (mode === "signup" && !result.data.session) {
@@ -186,7 +187,7 @@ export function UpdatePasswordScreen({ onComplete }: { onComplete: () => void })
     setIsSubmitting(true);
     const { error: updateError } = await getSupabase().auth.updateUser({ password });
     setIsSubmitting(false);
-    if (updateError) setError(updateError.message);
+    if (updateError) setError(getAuthErrorMessage(updateError, "Não foi possível atualizar a senha."));
     else {
       window.history.replaceState({}, "", window.location.pathname);
       onComplete();
@@ -226,7 +227,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     setError("");
     const { error: rpcError } = await getSupabase().rpc("create_organization", { p_name: companyName, p_team_name: teamName });
     setIsSubmitting(false);
-    if (rpcError) setError(rpcError.message);
+    if (rpcError) setError(getAuthErrorMessage(rpcError, "Não foi possível criar o workspace."));
     else onComplete();
   }
 
