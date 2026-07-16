@@ -1,14 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import {
   FiActivity,
   FiBriefcase,
   FiCalendar,
   FiClock,
+  FiDownload,
   FiEdit2,
+  FiMessageSquare,
+  FiPaperclip,
   FiTrash2,
+  FiUpload,
   FiUser,
   FiX,
 } from "react-icons/fi";
+import { useTaskCollaboration } from "../../hooks/useTaskCollaboration";
 import { getSupabase } from "../../lib/supabase";
 import type { Task } from "../../types/task";
 import { PRIORITY_LABELS, STATUS_LABELS } from "../../utils/constants";
@@ -20,6 +26,7 @@ interface TaskDetailsModalProps {
   onClose: () => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  currentUserId: string;
   canManage: boolean;
 }
 
@@ -62,6 +69,12 @@ function formatDateTime(date: string): string {
   }).format(new Date(date));
 }
 
+function formatFileSize(fileSize: number): string {
+  if (fileSize < 1024) return `${fileSize} B`;
+  if (fileSize < 1024 * 1024) return `${(fileSize / 1024).toFixed(1)} KB`;
+  return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function describeActivity(activity: TaskActivity): string {
   if (activity.action === "created") return "criou a tarefa";
   if (activity.action === "deleted") return "excluiu a tarefa";
@@ -98,11 +111,16 @@ export function TaskDetailsModal({
   onClose,
   onEdit,
   onDelete,
+  currentUserId,
   canManage,
 }: TaskDetailsModalProps) {
   const [activities, setActivities] = useState<TaskActivity[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState("");
+  const [commentBody, setCommentBody] = useState("");
+  const [collaborationMessage, setCollaborationMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const collaboration = useTaskCollaboration(task, isOpen, currentUserId);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -119,6 +137,8 @@ export function TaskDetailsModal({
     if (!isOpen || !task) {
       setActivities([]);
       setHistoryError("");
+      setCommentBody("");
+      setCollaborationMessage("");
       return;
     }
 
@@ -175,6 +195,63 @@ export function TaskDetailsModal({
       active = false;
     };
   }, [isOpen, task]);
+
+  async function handleAddComment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const body = commentBody.trim();
+    if (!body) return;
+
+    setCollaborationMessage("");
+    try {
+      await collaboration.addComment(body);
+      setCommentBody("");
+    } catch {
+      setCollaborationMessage("Não foi possível publicar o comentário.");
+    }
+  }
+
+  async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setCollaborationMessage("");
+    try {
+      await collaboration.uploadAttachment(file);
+    } catch (error) {
+      setCollaborationMessage(error instanceof Error ? error.message : "Não foi possível enviar o anexo.");
+    }
+  }
+
+  async function handleOpenAttachment(storagePath: string) {
+    setCollaborationMessage("");
+    try {
+      await collaboration.openAttachment(storagePath);
+    } catch {
+      setCollaborationMessage("Não foi possível abrir o anexo.");
+    }
+  }
+
+  async function handleDeleteComment(commentId: string) {
+    setCollaborationMessage("");
+    try {
+      await collaboration.deleteComment(commentId);
+    } catch {
+      setCollaborationMessage("Não foi possível excluir o comentário.");
+    }
+  }
+
+  async function handleDeleteAttachment(attachmentId: string) {
+    const attachment = collaboration.attachments.find((item) => item.id === attachmentId);
+    if (!attachment) return;
+
+    setCollaborationMessage("");
+    try {
+      await collaboration.deleteAttachment(attachment);
+    } catch {
+      setCollaborationMessage("Não foi possível excluir o anexo.");
+    }
+  }
 
   if (!isOpen || !task) return null;
 
@@ -235,6 +312,137 @@ export function TaskDetailsModal({
               <span><small>Última atualização</small><strong>{formatDateTime(task.updatedAt)}</strong></span>
             </div>
           </div>
+
+          <section className="task-details__section task-details__collaboration">
+            <div className="task-details__section-heading">
+              <h3><FiMessageSquare /> Comentários</h3>
+              <span>{collaboration.comments.length}</span>
+            </div>
+
+            <form className="task-details__comment-form" onSubmit={(event) => void handleAddComment(event)}>
+              <textarea
+                value={commentBody}
+                maxLength={2000}
+                rows={3}
+                placeholder="Escreva uma atualização, observação ou dúvida..."
+                aria-label="Novo comentário"
+                onChange={(event) => setCommentBody(event.target.value)}
+              />
+              <div>
+                <small>{commentBody.length}/2000</small>
+                <button type="submit" disabled={!commentBody.trim() || collaboration.busyKey === "comment"}>
+                  <FiMessageSquare /> {collaboration.busyKey === "comment" ? "Publicando..." : "Comentar"}
+                </button>
+              </div>
+            </form>
+
+            {collaboration.isLoading && <p className="task-details__empty-state">Carregando comentários...</p>}
+            {!collaboration.isLoading && collaboration.comments.length === 0 && (
+              <p className="task-details__empty-state">Nenhum comentário nesta tarefa.</p>
+            )}
+            <ol className="task-details__comments">
+              {collaboration.comments.map((comment) => {
+                const canDelete = canManage || comment.authorId === currentUserId;
+                return (
+                  <li key={comment.id}>
+                    <div className="task-details__avatar" aria-hidden="true">
+                      {comment.authorName.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div className="task-details__comment-content">
+                      <header>
+                        <span>
+                          <strong>{comment.authorName}</strong>
+                          <time dateTime={comment.createdAt}>{formatDateTime(comment.createdAt)}</time>
+                        </span>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            aria-label={`Excluir comentário de ${comment.authorName}`}
+                            disabled={collaboration.busyKey === `comment-${comment.id}`}
+                            onClick={() => void handleDeleteComment(comment.id)}
+                          >
+                            <FiTrash2 />
+                          </button>
+                        )}
+                      </header>
+                      <p>{comment.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          <section className="task-details__section task-details__collaboration">
+            <div className="task-details__section-heading">
+              <h3><FiPaperclip /> Anexos</h3>
+              <span>{collaboration.attachments.length}</span>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="task-details__file-input"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx"
+              onChange={(event) => void handleUpload(event)}
+            />
+            <button
+              type="button"
+              className="task-details__upload"
+              disabled={collaboration.busyKey === "attachment"}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <FiUpload />
+              <span>
+                <strong>{collaboration.busyKey === "attachment" ? "Enviando arquivo..." : "Adicionar anexo"}</strong>
+                <small>PDF, imagens, documentos ou planilhas de até 10 MB</small>
+              </span>
+            </button>
+
+            {!collaboration.isLoading && collaboration.attachments.length === 0 && (
+              <p className="task-details__empty-state">Nenhum arquivo anexado.</p>
+            )}
+            <ul className="task-details__attachments">
+              {collaboration.attachments.map((attachment) => {
+                const canDelete = canManage || attachment.uploadedBy === currentUserId;
+                return (
+                  <li key={attachment.id}>
+                    <span className="task-details__attachment-icon"><FiPaperclip /></span>
+                    <span className="task-details__attachment-info">
+                      <strong title={attachment.fileName}>{attachment.fileName}</strong>
+                      <small>{formatFileSize(attachment.fileSize)} · {attachment.uploaderName} · {formatDateTime(attachment.createdAt)}</small>
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Abrir ${attachment.fileName}`}
+                      title="Abrir anexo"
+                      onClick={() => void handleOpenAttachment(attachment.storagePath)}
+                    >
+                      <FiDownload />
+                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="task-details__attachment-delete"
+                        aria-label={`Excluir ${attachment.fileName}`}
+                        title="Excluir anexo"
+                        disabled={collaboration.busyKey === `attachment-${attachment.id}`}
+                        onClick={() => void handleDeleteAttachment(attachment.id)}
+                      >
+                        <FiTrash2 />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {(collaboration.error || collaborationMessage) && (
+            <p className="task-details__collaboration-error" role="alert">
+              {collaborationMessage || "Não foi possível carregar comentários e anexos."}
+            </p>
+          )}
 
           <section className="task-details__section task-details__history">
             <h3><FiActivity /> Histórico de atividade</h3>

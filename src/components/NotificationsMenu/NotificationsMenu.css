@@ -1,0 +1,167 @@
+.notifications-menu {
+  position: relative;
+}
+
+.notifications-menu__trigger {
+  position: relative;
+}
+
+.notifications-menu__trigger > strong {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid #0f172a;
+  border-radius: 999px;
+  color: #fff;
+  background: #dc2626;
+  font-size: 0.65rem;
+}
+
+.notifications-menu__panel {
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(390px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  background: #0f172a;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, 0.55);
+}
+
+.notifications-menu__panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.notifications-menu__panel > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notifications-menu__panel > header strong {
+  color: #f8fafc;
+}
+
+.notifications-menu__panel > header span {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.notifications-menu__panel > header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #93c5fd;
+  font-size: 0.72rem;
+  background: transparent;
+}
+
+.notifications-menu__list {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.notifications-menu__item {
+  display: flex;
+  width: 100%;
+  gap: 11px;
+  padding: 13px 15px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  text-align: left;
+  background: transparent;
+}
+
+.notifications-menu__item:hover {
+  background: rgba(30, 41, 59, 0.62);
+}
+
+.notifications-menu__item--unread {
+  background: rgba(30, 64, 175, 0.12);
+}
+
+.notifications-menu__item > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notifications-menu__item strong {
+  color: #e2e8f0;
+  font-size: 0.8rem;
+}
+
+.notifications-menu__item small {
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifications-menu__item time {
+  color: #475569;
+  font-size: 0.68rem;
+}
+
+.notifications-menu__icon {
+  display: grid;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  color: #93c5fd;
+  background: rgba(30, 64, 175, 0.22);
+}
+
+.notifications-menu__icon--comment {
+  color: #c4b5fd;
+  background: rgba(91, 33, 182, 0.2);
+}
+
+.notifications-menu__icon--overdue {
+  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.2);
+}
+
+.notifications-menu__icon--due_today,
+.notifications-menu__icon--due_tomorrow {
+  color: #fde68a;
+  background: rgba(113, 63, 18, 0.2);
+}
+
+.notifications-menu__state {
+  padding: 24px 16px;
+  color: #64748b;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.notifications-menu__state--error {
+  color: #fca5a5;
+}
+
+@media (max-width: 560px) {
+  .notifications-menu,
+  .notifications-menu__trigger {
+    width: 100%;
+  }
+
+  .notifications-menu__panel {
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

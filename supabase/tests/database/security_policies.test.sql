@@ -1,6 +1,6 @@
 begin;
 
-select plan(21);
+select plan(25);
 
 select is(
   (
@@ -10,11 +10,12 @@ select is(
     where n.nspname = 'public'
       and c.relname = any(array[
         'profiles', 'organizations', 'organization_members', 'teams',
-        'team_members', 'tasks', 'task_activity', 'invitations'
+        'team_members', 'tasks', 'task_activity', 'invitations',
+        'task_comments', 'task_attachments', 'notifications'
       ])
       and c.relrowsecurity
   ),
-  8,
+  11,
   'RLS está habilitado em todas as tabelas expostas'
 );
 
@@ -50,6 +51,25 @@ select policies_are('public', 'task_activity', array[
 select policies_are('public', 'invitations', array[
   'invitations_select', 'invitations_insert', 'invitations_delete'
 ], 'Convites possuem somente as políticas esperadas');
+
+select policies_are('public', 'task_comments', array[
+  'task_comments_select', 'task_comments_insert',
+  'task_comments_update', 'task_comments_delete'
+], 'Comentários possuem somente as políticas esperadas');
+
+select policies_are('public', 'task_attachments', array[
+  'task_attachments_select', 'task_attachments_insert', 'task_attachments_delete'
+], 'Anexos possuem somente as políticas esperadas');
+
+select policies_are('public', 'notifications', array[
+  'notifications_select', 'notifications_update', 'notifications_delete'
+], 'Notificações possuem somente as políticas esperadas');
+
+select is(
+  (select public from storage.buckets where id = 'task-attachments'),
+  false,
+  'Bucket de anexos é privado'
+);
 
 select policy_cmd_is('public', 'tasks', 'tasks_select'::name, 'SELECT', 'Leitura de tarefas usa política SELECT');
 select policy_cmd_is('public', 'tasks', 'tasks_insert'::name, 'INSERT', 'Criação de tarefas usa política INSERT');

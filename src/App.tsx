@@ -137,10 +137,16 @@ function TaskFlowWorkspace({
         role={ROLE_LABELS[membership.role]}
         memberships={workspace.memberships}
         activeOrganizationId={workspace.activeOrganizationId}
+        currentUserId={session.user.id}
         canManage={canManage}
         onCreateTask={() => openCreateModal()}
         onSettings={() => setIsSettingsOpen(true)}
         onAccountSettings={() => setIsAccountSettingsOpen(true)}
+        onOpenNotificationTask={(taskId) => {
+          const task = taskStore.tasks.find((item) => item.id === taskId);
+          if (task) setTaskInDetails(task);
+          else setOperationError("A tarefa desta notificação não está mais disponível.");
+        }}
         onOrganizationChange={workspace.setActiveOrganizationId}
         onSignOut={() => void onSignOut()}
       />
@@ -187,7 +193,7 @@ function TaskFlowWorkspace({
         onUpdate={taskStore.updateTask}
       />
       <DeleteTaskModal isOpen={Boolean(taskPendingDeletion)} task={taskPendingDeletion} onClose={() => setTaskPendingDeletion(null)} onConfirm={(id) => void deleteTask(id)} />
-      <TaskDetailsModal isOpen={Boolean(taskInDetails)} task={taskInDetails} canManage={canManage} onClose={() => setTaskInDetails(null)} onEdit={openEditModal} onDelete={(task) => { setTaskInDetails(null); setTaskPendingDeletion(task); }} />
+      <TaskDetailsModal isOpen={Boolean(taskInDetails)} task={taskInDetails} currentUserId={session.user.id} canManage={canManage} onClose={() => setTaskInDetails(null)} onEdit={openEditModal} onDelete={(task) => { setTaskInDetails(null); setTaskPendingDeletion(task); }} />
       <WorkspaceSettings isOpen={isSettingsOpen} organizationId={membership.organizationId} currentUserId={session.user.id} teams={workspace.teams} members={workspace.members} onClose={() => setIsSettingsOpen(false)} onChanged={workspace.refresh} />
       <AccountSettings
         isOpen={isAccountSettingsOpen}

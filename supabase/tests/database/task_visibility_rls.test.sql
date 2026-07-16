@@ -1,6 +1,6 @@
 begin;
 
-select plan(8);
+select plan(14);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('10000000-0000-4000-8000-000000000001', 'owner-taskflow-test@example.com', '{"full_name":"Owner Test"}'),
@@ -49,11 +49,62 @@ select results_eq(
   $$values (0::bigint)$$,
   'Membro não pode excluir tarefas'
 );
+select lives_ok(
+  $$insert into public.task_comments (organization_id, task_id, author_id, body)
+    values (
+      '20000000-0000-4000-8000-000000000001',
+      '40000000-0000-4000-8000-000000000001',
+      '10000000-0000-4000-8000-000000000002',
+      'Comentário permitido'
+    )$$,
+  'Membro pode comentar na tarefa atribuída'
+);
+select throws_ok(
+  $$insert into public.task_comments (organization_id, task_id, author_id, body)
+    values (
+      '20000000-0000-4000-8000-000000000001',
+      '40000000-0000-4000-8000-000000000002',
+      '10000000-0000-4000-8000-000000000002',
+      'Comentário indevido'
+    )$$,
+  '42501',
+  null,
+  'Membro não pode comentar em tarefa não atribuída'
+);
+select results_eq(
+  $$select body from public.task_comments order by created_at$$,
+  $$values ('Comentário permitido'::text)$$,
+  'Membro visualiza somente comentários das próprias tarefas'
+);
+select lives_ok(
+  $$insert into public.task_attachments (
+      organization_id, task_id, uploaded_by, storage_path, file_name, mime_type, file_size
+    ) values (
+      '20000000-0000-4000-8000-000000000001',
+      '40000000-0000-4000-8000-000000000001',
+      '10000000-0000-4000-8000-000000000002',
+      '20000000-0000-4000-8000-000000000001/40000000-0000-4000-8000-000000000001/teste.pdf',
+      'teste.pdf',
+      'application/pdf',
+      100
+    )$$,
+  'Membro pode registrar anexo na tarefa atribuída'
+);
+select is(
+  (select count(*) from public.notifications where user_id = '10000000-0000-4000-8000-000000000001'),
+  0::bigint,
+  'Membro não visualiza notificações de outro usuário'
+);
 
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 
 select is((select count(*) from public.tasks), 3::bigint, 'Proprietário visualiza todas as tarefas da empresa');
 select is((select count(*) from public.tasks where organization_id = '20000000-0000-4000-8000-000000000002'), 0::bigint, 'Proprietário continua isolado de outras empresas');
+select is(
+  (select count(*) from public.task_comments),
+  1::bigint,
+  'Proprietário visualiza comentários de todas as tarefas da empresa'
+);
 
 select * from finish();
 rollback;
