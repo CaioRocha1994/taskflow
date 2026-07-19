@@ -3,15 +3,15 @@
   flex-direction: column;
   gap: 16px;
   padding: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.13);
+  border: 1px solid var(--app-border-subtle);
   border-radius: 16px;
   background:
     linear-gradient(
       180deg,
-      rgba(30, 41, 59, 0.92),
-      rgba(15, 23, 42, 0.94)
+      var(--app-surface-soft),
+      var(--app-surface)
     );
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.18);
+  box-shadow: var(--app-shadow);
   cursor: pointer;
   transition:
     transform 0.2s ease,
@@ -75,17 +75,17 @@
   padding: 0;
   border: 0;
   border-radius: 9px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   background: transparent;
 }
 
 .task-card__details-button:hover {
-  color: #f8fafc;
-  background: rgba(51, 65, 85, 0.72);
+  color: var(--app-text);
+  background: var(--app-surface-hover);
 }
 
 .task-card__content h3 {
-  color: #f8fafc;
+  color: var(--app-text);
   font-size: 1rem;
   line-height: 1.4;
 }
@@ -94,7 +94,7 @@
   display: -webkit-box;
   margin-top: 8px;
   overflow: hidden;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-size: 0.9rem;
   line-height: 1.55;
   -webkit-box-orient: vertical;
@@ -114,8 +114,8 @@
   padding: 0 9px;
   border: 1px solid rgba(96, 165, 250, 0.16);
   border-radius: 999px;
-  color: #93c5fd;
-  background: rgba(30, 64, 175, 0.12);
+  color: var(--app-accent-text);
+  background: var(--app-accent-soft);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -126,19 +126,19 @@
   justify-content: space-between;
   gap: 12px;
   padding-top: 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  border-top: 1px solid var(--app-border-subtle);
 }
 
 .task-card__date {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-size: 0.78rem;
 }
 
 .task-card__status {
-  color: #cbd5e1;
+  color: var(--app-text-secondary);
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -156,18 +156,18 @@
   gap: 7px;
   min-height: 38px;
   padding: 0 12px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border: 1px solid var(--app-border);
   border-radius: 10px;
-  color: #cbd5e1;
-  background: rgba(15, 23, 42, 0.72);
+  color: var(--app-text-secondary);
+  background: var(--app-surface-translucent);
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .task-card__action-button:hover {
   border-color: rgba(96, 165, 250, 0.3);
-  color: #ffffff;
-  background: rgba(30, 41, 59, 0.92);
+  color: var(--app-text);
+  background: var(--app-surface-soft);
 }
 
 .task-card__action-button--danger {

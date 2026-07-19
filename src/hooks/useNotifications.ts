@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabase } from "../lib/supabase";
+import { useUserPreferences } from "./useUserPreferences";
 import type { NotificationType, WorkspaceNotification } from "../types/collaboration";
 
 interface NotificationRow {
@@ -25,6 +26,7 @@ function mapNotification(row: NotificationRow): WorkspaceNotification {
 }
 
 export function useNotifications(organizationId: string, userId: string) {
+  const { preferences } = useUserPreferences();
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -53,16 +55,38 @@ export function useNotifications(organizationId: string, userId: string) {
       .limit(50);
 
     if (queryError) setError(queryError.message);
-    else setNotifications(((data ?? []) as NotificationRow[]).map(mapNotification));
+    else {
+      const mappedNotifications = ((data ?? []) as NotificationRow[]).map(mapNotification);
+      setNotifications(mappedNotifications);
+
+      if (
+        preferences.browserNotificationsEnabled
+        && "Notification" in window
+        && Notification.permission === "granted"
+      ) {
+        mappedNotifications
+          .filter((notification) => !notification.readAt && (notification.type === "due_soon" || notification.type === "overdue"))
+          .forEach((notification) => {
+            const storageKey = `taskflow:browser-notification:${notification.id}`;
+            if (sessionStorage.getItem(storageKey)) return;
+            const browserNotification = new Notification(notification.title, {
+              body: notification.body,
+              tag: notification.id,
+            });
+            browserNotification.onclick = () => window.focus();
+            sessionStorage.setItem(storageKey, "shown");
+          });
+      }
+    }
     setIsLoading(false);
-  }, [organizationId, userId]);
+  }, [organizationId, preferences.browserNotificationsEnabled, userId]);
 
   useEffect(() => {
     setNotifications([]);
     setIsLoading(true);
     void loadNotifications();
 
-    const intervalId = window.setInterval(() => void loadNotifications(), 60_000);
+    const intervalId = window.setInterval(() => void loadNotifications(), 30_000);
     const handleFocus = () => void loadNotifications();
     window.addEventListener("focus", handleFocus);
 

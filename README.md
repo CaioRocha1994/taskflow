@@ -13,6 +13,10 @@ Kanban multiempresa para gestão de tarefas, equipes e usuários. O frontend usa
 - Convites de usuários por e-mail e link, com validade e validação do endereço
 - Responsável e equipe por tarefa
 - Kanban com drag-and-drop, busca, filtros, prioridades e prazos
+- Prazo com data e hora, alertas em tempo real e notificações do navegador
+- Alertas de prazo por e-mail com fila segura e Edge Function
+- Tema claro/escuro persistido por usuário no PostgreSQL
+- Tags por empresa com autocomplete, criação automática e associação N:N
 - Histórico de criação, edição e exclusão no banco
 - Atualização em tempo real preparada com Supabase Realtime
 - Row Level Security (RLS) em todas as tabelas expostas
@@ -32,7 +36,7 @@ VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-publicavel
 ```
 
-No Supabase, execute a migração [`supabase/migrations/202607130001_initial_multitenant.sql`](supabase/migrations/202607130001_initial_multitenant.sql) pelo SQL Editor. Se estiver usando a CLI:
+No Supabase, aplique as migrações em ordem. Se estiver usando a CLI:
 
 ```bash
 supabase link --project-ref SEU_PROJECT_REF
@@ -49,9 +53,9 @@ npm run dev
 
 Em **Authentication → URL Configuration**:
 
-- defina `Site URL` com a URL de produção do Vercel;
+- defina `Site URL` como `https://crtechweb.com.br/taskflow/login`;
 - adicione `http://localhost:5173/**` em Redirect URLs;
-- adicione também `https://SEU-DOMINIO.vercel.app/**`.
+- adicione também as rotas oficiais de login e aplicação.
 
 Em **Authentication → Providers → Email**, mantenha login por e-mail habilitado. Em produção, é recomendado exigir confirmação do endereço.
 
@@ -60,6 +64,10 @@ Convites e recuperação de senha usam os e-mails transacionais do Supabase Auth
 Os modelos profissionais e o roteiro de configuração ficam em [`supabase/email-templates`](supabase/email-templates).
 
 Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na publicação do Realtime pelo painel do Supabase.
+
+### Alertas de prazo por e-mail
+
+A função [`supabase/functions/due-task-notifications`](supabase/functions/due-task-notifications) processa os prazos e envia a fila pela API transacional da Brevo sem expor credenciais no navegador. Consulte o README da função para cadastrar os secrets, publicar e agendar sua execução a cada minuto.
 
 ## Deploy no Vercel
 
@@ -104,6 +112,7 @@ supabase/
 ```bash
 npm run lint
 npm run build
+npm test
 npm run test:db
 ```
 

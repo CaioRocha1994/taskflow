@@ -33,14 +33,13 @@ function formatDate(date?: string): string {
     return "Sem prazo";
   }
 
-  const parsedDate = new Date(
-    `${date}T00:00:00`,
-  );
+  const parsedDate = new Date(date.includes("T") ? date : `${date}T00:00:00`);
 
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    ...(date.includes("T") ? { hour: "2-digit", minute: "2-digit" } : {}),
   }).format(parsedDate);
 }
 
@@ -127,11 +126,11 @@ export function TaskCard({
           <span>
             {isOverdue
               ? `Atrasada · ${formatDate(
-                  task.dueDate,
+                  task.deadlineAt ?? task.dueDate,
                 )}`
               : isDueToday
                 ? "Vence hoje"
-                : formatDate(task.dueDate)}
+                : formatDate(task.deadlineAt ?? task.dueDate)}
           </span>
         </div>
 

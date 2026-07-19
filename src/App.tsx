@@ -11,7 +11,9 @@ import { TaskFlowLandingPage } from "./components/Marketing/TaskFlowLandingPage"
 import { TaskDetailsModal } from "./components/TaskDetailsModal/TaskDetailsModal";
 import { TaskModal } from "./components/TaskModal/TaskModal";
 import { WorkspaceSettings } from "./components/WorkspaceSettings/WorkspaceSettings";
+import { UserPreferencesProvider } from "./contexts/UserPreferencesContext";
 import { useAuth } from "./hooks/useAuth";
+import { useTags } from "./hooks/useTags";
 import { useTasks } from "./hooks/useTasks";
 import { useWorkspace } from "./hooks/useWorkspace";
 import { getSupabase, isSupabaseConfigured } from "./lib/supabase";
@@ -81,10 +83,10 @@ function TaskFlowWorkspace({
   const canManage = membership.role === "owner" || membership.role === "admin";
   const taskStore = useTasks(
     membership.organizationId,
-    session.user.id,
     workspace.teams,
     workspace.members,
   );
+  const tagStore = useTags(membership.organizationId);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -212,6 +214,7 @@ function TaskFlowWorkspace({
         members={workspace.members}
         currentUserId={session.user.id}
         canManage={canManage}
+        availableTags={tagStore.tags}
         onClose={() => { setIsTaskModalOpen(false); setSelectedTask(null); }}
         onCreate={taskStore.createTask}
         onUpdate={taskStore.updateTask}
@@ -255,13 +258,15 @@ function ConnectedApp() {
   if (!session) return <AuthScreen />;
   if (isPasswordRecovery) return <UpdatePasswordScreen onComplete={() => setIsPasswordRecovery(false)} />;
   return (
-    <AuthenticatedApp
-      session={session}
-      onSignOut={async () => {
-        await signOut();
-        window.history.replaceState({}, "", TASKFLOW_PATHS.login);
-      }}
-    />
+    <UserPreferencesProvider userId={session.user.id}>
+      <AuthenticatedApp
+        session={session}
+        onSignOut={async () => {
+          await signOut();
+          window.history.replaceState({}, "", TASKFLOW_PATHS.login);
+        }}
+      />
+    </UserPreferencesProvider>
   );
 }
 

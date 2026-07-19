@@ -12,7 +12,7 @@
   height: 20px;
   place-items: center;
   padding: 0 5px;
-  border: 2px solid #0f172a;
+  border: 2px solid var(--app-surface);
   border-radius: 999px;
   color: #fff;
   background: #dc2626;
@@ -26,10 +26,10 @@
   right: 0;
   width: min(390px, calc(100vw - 32px));
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
-  background: #0f172a;
-  box-shadow: 0 22px 60px rgba(2, 6, 23, 0.55);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-lg);
 }
 
 .notifications-menu__panel > header {
@@ -38,7 +38,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 15px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--app-border-subtle);
 }
 
 .notifications-menu__panel > header div {
@@ -48,11 +48,11 @@
 }
 
 .notifications-menu__panel > header strong {
-  color: #f8fafc;
+  color: var(--app-text);
 }
 
 .notifications-menu__panel > header span {
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-size: 0.72rem;
 }
 
@@ -75,13 +75,13 @@
   width: 100%;
   gap: 11px;
   padding: 13px 15px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  border-bottom: 1px solid var(--app-border-subtle);
   text-align: left;
   background: transparent;
 }
 
 .notifications-menu__item:hover {
-  background: rgba(30, 41, 59, 0.62);
+  background: var(--app-surface-hover);
 }
 
 .notifications-menu__item--unread {
@@ -96,20 +96,20 @@
 }
 
 .notifications-menu__item strong {
-  color: #e2e8f0;
+  color: var(--app-text);
   font-size: 0.8rem;
 }
 
 .notifications-menu__item small {
   overflow: hidden;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .notifications-menu__item time {
-  color: #475569;
+  color: var(--app-text-subtle);
   font-size: 0.68rem;
 }
 
@@ -135,14 +135,15 @@
 }
 
 .notifications-menu__icon--due_today,
-.notifications-menu__icon--due_tomorrow {
+.notifications-menu__icon--due_tomorrow,
+.notifications-menu__icon--due_soon {
   color: #fde68a;
   background: rgba(113, 63, 18, 0.2);
 }
 
 .notifications-menu__state {
   padding: 24px 16px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-size: 0.8rem;
   text-align: center;
 }

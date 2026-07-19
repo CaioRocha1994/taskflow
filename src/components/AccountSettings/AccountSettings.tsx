@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { FiCheck, FiLock, FiSave, FiUser, FiX } from "react-icons/fi";
+import { FiBell, FiCheck, FiLock, FiMail, FiMoon, FiSave, FiSun, FiUser, FiX } from "react-icons/fi";
+import { useUserPreferences } from "../../hooks/useUserPreferences";
 import { getSupabase } from "../../lib/supabase";
 import { getAuthErrorMessage } from "../../utils/authErrors";
 import { getPasswordRequirements, isStrongPassword } from "../../utils/password";
@@ -14,6 +15,7 @@ interface AccountSettingsProps {
 }
 
 export function AccountSettings({ isOpen, currentName, email, onClose, onChanged }: AccountSettingsProps) {
+  const { preferences, error: preferencesError, updatePreferences, toggleTheme, setBrowserNotificationsEnabled } = useUserPreferences();
   const [fullName, setFullName] = useState(currentName);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -77,6 +79,34 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
     }
   }
 
+  async function updateBrowserNotifications(enabled: boolean) {
+    setError("");
+    setMessage("");
+    setBusyKey("browser-notifications");
+    try {
+      await setBrowserNotificationsEnabled(enabled);
+      setMessage(enabled ? "Notificações do navegador ativadas." : "Notificações do navegador desativadas.");
+    } catch (notificationError) {
+      setError(notificationError instanceof Error ? notificationError.message : "Não foi possível alterar as notificações.");
+    } finally {
+      setBusyKey("");
+    }
+  }
+
+  async function updatePreference(update: Parameters<typeof updatePreferences>[0], successMessage: string) {
+    setError("");
+    setMessage("");
+    setBusyKey("preferences");
+    try {
+      await updatePreferences(update);
+      setMessage(successMessage);
+    } catch {
+      setError("Não foi possível salvar a preferência.");
+    } finally {
+      setBusyKey("");
+    }
+  }
+
   return (
     <div className="account-settings__overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="account-settings" role="dialog" aria-modal="true" aria-labelledby="account-settings-title">
@@ -97,6 +127,65 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
           <button disabled={busyKey === "profile"}><FiSave /> {busyKey === "profile" ? "Salvando..." : "Salvar perfil"}</button>
         </form>
 
+        <section className="account-settings__preferences" aria-labelledby="account-preferences-title">
+          <div className="account-settings__section-title">
+            {preferences.theme === "dark" ? <FiMoon /> : <FiSun />}
+            <span><strong id="account-preferences-title">Aparência e notificações</strong><small>Preferências salvas na sua conta</small></span>
+          </div>
+
+          <div className="account-settings__preference-row">
+            <span><strong>Tema do sistema</strong><small>Alterne entre a aparência clara e escura</small></span>
+            <button type="button" className="account-settings__choice" onClick={() => void toggleTheme()}>
+              {preferences.theme === "dark" ? <><FiMoon /> Escuro</> : <><FiSun /> Claro</>}
+            </button>
+          </div>
+
+          <div className="account-settings__preference-row">
+            <span><strong><FiBell /> Notificações do navegador</strong><small>Alertas mesmo quando a aba não estiver em foco</small></span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={preferences.browserNotificationsEnabled}
+              className={`account-settings__switch${preferences.browserNotificationsEnabled ? " account-settings__switch--active" : ""}`}
+              disabled={busyKey === "browser-notifications"}
+              onClick={() => void updateBrowserNotifications(!preferences.browserNotificationsEnabled)}
+            ><span /></button>
+          </div>
+
+          <div className="account-settings__preference-row">
+            <span><strong><FiMail /> Alertas por e-mail</strong><small>Receba avisos de tarefas próximas do prazo e atrasadas</small></span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={preferences.emailDueNotificationsEnabled}
+              className={`account-settings__switch${preferences.emailDueNotificationsEnabled ? " account-settings__switch--active" : ""}`}
+              disabled={busyKey === "preferences"}
+              onClick={() => void updatePreference(
+                { emailDueNotificationsEnabled: !preferences.emailDueNotificationsEnabled },
+                "Preferência de e-mail atualizada.",
+              )}
+            ><span /></button>
+          </div>
+
+          <label className="account-settings__preference-select">
+            <span><strong>Antecedência do alerta</strong><small>Quanto tempo antes do prazo você deseja ser avisado</small></span>
+            <select
+              value={preferences.dueSoonMinutes}
+              disabled={busyKey === "preferences"}
+              onChange={(event) => void updatePreference(
+                { dueSoonMinutes: Number(event.target.value) },
+                "Antecedência do alerta atualizada.",
+              )}
+            >
+              <option value={5}>5 minutos</option>
+              <option value={15}>15 minutos</option>
+              <option value={30}>30 minutos</option>
+              <option value={60}>1 hora</option>
+              <option value={1440}>1 dia</option>
+            </select>
+          </label>
+        </section>
+
         <form onSubmit={updatePassword}>
           <div className="account-settings__section-title"><FiLock /><span><strong>Alterar senha</strong><small>Use uma senha exclusiva para o TaskFlow</small></span></div>
           <label><span>Nova senha</span><input required minLength={10} type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
@@ -109,7 +198,7 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
           <button disabled={busyKey === "password"}><FiLock /> {busyKey === "password" ? "Alterando..." : "Alterar senha"}</button>
         </form>
 
-        {error && <p className="account-settings__message account-settings__message--error" role="alert">{error}</p>}
+        {(error || preferencesError) && <p className="account-settings__message account-settings__message--error" role="alert">{error || preferencesError}</p>}
         {message && <p className="account-settings__message" role="status">{message}</p>}
       </section>
     </div>

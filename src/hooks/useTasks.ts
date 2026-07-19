@@ -13,7 +13,9 @@ interface TaskRow {
   status: TaskStatus;
   priority: Task["priority"];
   due_date: string | null;
+  deadline_at: string | null;
   tags: string[];
+  task_tags?: Array<{ tag: { id: string; name: string } | Array<{ id: string; name: string }> | null }>;
   created_at: string;
   updated_at: string;
   completed_at: string | null;
@@ -34,7 +36,11 @@ function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task 
     status: row.status,
     priority: row.priority,
     dueDate: row.due_date ?? undefined,
-    tags: row.tags ?? [],
+    deadlineAt: row.deadline_at ?? undefined,
+    tags: row.task_tags?.flatMap((relation) => {
+      if (Array.isArray(relation.tag)) return relation.tag.map((tag) => tag.name);
+      return relation.tag?.name ? [relation.tag.name] : [];
+    }) ?? row.tags ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at ?? undefined,
@@ -43,7 +49,6 @@ function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task 
 
 export function useTasks(
   organizationId: string,
-  userId: string,
   teams: Team[],
   members: WorkspaceMember[],
 ) {
@@ -57,7 +62,7 @@ export function useTasks(
     setError("");
     const { data, error: queryError } = await getSupabase()
       .from("tasks")
-      .select("*")
+      .select("*, task_tags(tag:tags(id, name))")
       .eq("organization_id", organizationId)
       .order("created_at", { ascending: true });
 
@@ -86,24 +91,48 @@ export function useTasks(
   }, [organizationId, loadTasks]);
 
   async function createTask(input: CreateTaskInput): Promise<void> {
-    const { error: mutationError } = await getSupabase().from("tasks").insert({
-      organization_id: organizationId,
-      team_id: input.teamId,
-      assignee_id: input.assigneeId ?? null,
-      title: input.title.trim(),
-      description: input.description.trim(),
-      status: input.status,
-      priority: input.priority,
-      due_date: input.dueDate || null,
-      tags: Array.from(new Set(input.tags.map((tag) => tag.trim()).filter(Boolean))),
-      created_by: userId,
-      updated_by: userId,
+    const { error: mutationError } = await getSupabase().rpc("save_task_with_tags", {
+      p_task_id: null,
+      p_organization_id: organizationId,
+      p_team_id: input.teamId,
+      p_assignee_id: input.assigneeId || null,
+      p_title: input.title,
+      p_description: input.description,
+      p_status: input.status,
+      p_priority: input.priority,
+      p_deadline_at: input.deadlineAt || null,
+      p_tag_names: input.tags,
     });
     if (mutationError) throw mutationError;
     await loadTasks();
   }
 
   async function updateTask(taskId: string, input: UpdateTaskInput): Promise<void> {
+    if (
+      input.teamId !== undefined
+      && input.title !== undefined
+      && input.description !== undefined
+      && input.status !== undefined
+      && input.priority !== undefined
+      && input.tags !== undefined
+    ) {
+      const { error: saveError } = await getSupabase().rpc("save_task_with_tags", {
+        p_task_id: taskId,
+        p_organization_id: organizationId,
+        p_team_id: input.teamId,
+        p_assignee_id: input.assigneeId || null,
+        p_title: input.title,
+        p_description: input.description,
+        p_status: input.status,
+        p_priority: input.priority,
+        p_deadline_at: input.deadlineAt || null,
+        p_tag_names: input.tags,
+      });
+      if (saveError) throw saveError;
+      await loadTasks();
+      return;
+    }
+
     const payload: Record<string, unknown> = {};
     if (input.teamId !== undefined) payload.team_id = input.teamId;
     if (input.assigneeId !== undefined) payload.assignee_id = input.assigneeId || null;
@@ -112,7 +141,7 @@ export function useTasks(
     if (input.status !== undefined) payload.status = input.status;
     if (input.priority !== undefined) payload.priority = input.priority;
     if (input.dueDate !== undefined) payload.due_date = input.dueDate || null;
-    if (input.tags !== undefined) payload.tags = input.tags;
+    if (input.deadlineAt !== undefined) payload.deadline_at = input.deadlineAt || null;
 
     const { error: mutationError } = await getSupabase()
       .from("tasks")

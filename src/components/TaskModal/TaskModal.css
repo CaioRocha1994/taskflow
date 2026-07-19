@@ -5,7 +5,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(2, 6, 23, 0.78);
+  background: var(--app-overlay);
   backdrop-filter: blur(10px);
 }
 
@@ -13,15 +13,15 @@
   width: min(100%, 720px);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid var(--app-border);
   border-radius: 24px;
   background:
     linear-gradient(
       145deg,
-      rgba(15, 23, 42, 0.99),
-      rgba(30, 41, 59, 0.98)
+      var(--app-surface),
+      var(--app-surface-soft)
     );
-  box-shadow: 0 30px 90px rgba(2, 6, 23, 0.65);
+  box-shadow: var(--app-shadow-lg);
 }
 
 .task-modal__header {
@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: 24px;
   padding: 26px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid var(--app-border-subtle);
 }
 
 .task-modal__eyebrow {
@@ -44,13 +44,13 @@
 }
 
 .task-modal__header h2 {
-  color: #f8fafc;
+  color: var(--app-text);
   font-size: 1.55rem;
 }
 
 .task-modal__header p {
   margin-top: 8px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   line-height: 1.5;
 }
 
@@ -63,8 +63,8 @@
   padding: 0;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 11px;
-  color: #94a3b8;
-  background: rgba(2, 6, 23, 0.32);
+  color: var(--app-text-muted);
+  background: rgba(var(--app-bg-rgb), 0.4);
 }
 
 .task-modal__close:hover {
@@ -93,7 +93,7 @@
 }
 
 .task-modal__field > span {
-  color: #cbd5e1;
+  color: var(--app-text-secondary);
   font-size: 0.86rem;
   font-weight: 700;
 }
@@ -107,10 +107,10 @@
 .task-modal__field textarea,
 .task-modal__field select {
   min-width: 0;
-  border: 1px solid rgba(148, 163, 184, 0.17);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  color: #e2e8f0;
-  background: rgba(2, 6, 23, 0.52);
+  color: var(--app-text);
+  background: var(--app-input-bg);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -132,24 +132,24 @@
 
 .task-modal__field input::placeholder,
 .task-modal__field textarea::placeholder {
-  color: #64748b;
+  color: var(--app-text-subtle);
 }
 
 .task-modal__field input:focus,
 .task-modal__field textarea:focus,
 .task-modal__field select:focus {
   border-color: rgba(96, 165, 250, 0.68);
-  background: rgba(2, 6, 23, 0.74);
+  background: var(--app-input-focus);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .task-modal__field select option {
-  color: #e2e8f0;
-  background: #0f172a;
+  color: var(--app-text);
+  background: var(--app-surface);
 }
 
 .task-modal__field small {
-  color: #64748b;
+  color: var(--app-text-subtle);
   font-size: 0.74rem;
 }
 
@@ -187,12 +187,12 @@
 
 .task-modal__button--secondary {
   border-color: rgba(148, 163, 184, 0.17);
-  color: #cbd5e1;
-  background: rgba(15, 23, 42, 0.78);
+  color: var(--app-text-secondary);
+  background: var(--app-surface-translucent);
 }
 
 .task-modal__button--secondary:hover {
-  background: rgba(51, 65, 85, 0.65);
+  background: var(--app-surface-hover);
 }
 
 .task-modal__button--primary {

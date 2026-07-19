@@ -1,6 +1,6 @@
 begin;
 
-select plan(25);
+select plan(28);
 
 select is(
   (
@@ -11,11 +11,12 @@ select is(
       and c.relname = any(array[
         'profiles', 'organizations', 'organization_members', 'teams',
         'team_members', 'tasks', 'task_activity', 'invitations',
-        'task_comments', 'task_attachments', 'notifications'
+        'task_comments', 'task_attachments', 'notifications',
+        'user_preferences', 'tags', 'task_tags'
       ])
       and c.relrowsecurity
   ),
-  11,
+  14,
   'RLS está habilitado em todas as tabelas expostas'
 );
 
@@ -64,6 +65,18 @@ select policies_are('public', 'task_attachments', array[
 select policies_are('public', 'notifications', array[
   'notifications_select', 'notifications_update', 'notifications_delete'
 ], 'Notificações possuem somente as políticas esperadas');
+
+select policies_are('public', 'user_preferences', array[
+  'user_preferences_select', 'user_preferences_insert', 'user_preferences_update'
+], 'Preferências são privadas por usuário');
+
+select policies_are('public', 'tags', array[
+  'tags_select', 'tags_insert', 'tags_update', 'tags_delete'
+], 'Tags são isoladas por empresa');
+
+select policies_are('public', 'task_tags', array[
+  'task_tags_select', 'task_tags_insert', 'task_tags_delete'
+], 'Associações de tags respeitam a visibilidade da tarefa');
 
 select is(
   (select public from storage.buckets where id = 'task-attachments'),

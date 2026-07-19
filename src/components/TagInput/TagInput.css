@@ -1,0 +1,98 @@
+.tag-input {
+  position: relative;
+}
+
+.tag-input__control {
+  display: flex;
+  min-height: 46px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text);
+  background: var(--app-input-bg);
+}
+
+.tag-input__control:focus-within {
+  border-color: rgba(96, 165, 250, 0.68);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.tag-input__leading-icon {
+  min-width: 16px;
+  margin-top: 6px;
+  color: var(--app-text-muted);
+}
+
+.tag-input__chips {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-input__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  color: var(--app-accent-text);
+  background: var(--app-accent-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.tag-input__chip button {
+  color: inherit;
+  background: transparent;
+}
+
+.tag-input__chips input {
+  width: 120px;
+  min-width: 90px;
+  flex: 1;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  color: var(--app-text);
+  background: transparent;
+}
+
+.tag-input__suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 17px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 11px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.tag-input__suggestions button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--app-text-secondary);
+  text-align: left;
+  background: transparent;
+}
+
+.tag-input__suggestions button:hover {
+  color: var(--app-text);
+  background: var(--app-surface-hover);
+}
+
+.tag-input > small {
+  display: block;
+  margin-top: 7px;
+  color: var(--app-text-subtle);
+  font-size: 0.72rem;
+}

@@ -648,3 +648,47 @@
     width: 100%;
   }
 }
+
+/* Superfícies neutras usam os tokens globais para manter os dois temas consistentes. */
+.task-details__overlay { background: var(--app-overlay); }
+.task-details {
+  border-color: var(--app-border);
+  background: linear-gradient(145deg, var(--app-surface), var(--app-surface-soft));
+  box-shadow: var(--app-shadow-lg);
+}
+.task-details__header,
+.task-details__footer,
+.task-details__history li,
+.task-details__comment-form > div { border-color: var(--app-border-subtle); }
+.task-details__header h2,
+.task-details__section h3,
+.task-details__allocation strong,
+.task-details__dates strong,
+.task-details__comment-content strong,
+.task-details__comment-content p,
+.task-details__attachment-info strong,
+.task-details__history li p { color: var(--app-text); }
+.task-details__section p,
+.task-details__allocation small,
+.task-details__dates small,
+.task-details__comment-content time,
+.task-details__comment-form small,
+.task-details__attachment-info small,
+.task-details__history time,
+.task-details__empty-state,
+.task-details__history-state { color: var(--app-text-subtle); }
+.task-details__close,
+.task-details__allocation > div,
+.task-details__dates > div,
+.task-details__comment-form,
+.task-details__comments > li,
+.task-details__attachments li,
+.task-details__history-marker {
+  border-color: var(--app-border-subtle);
+  background: rgba(var(--app-bg-rgb), 0.3);
+}
+.task-details__comment-form textarea {
+  color: var(--app-text);
+  background: transparent;
+}
+.task-details__close { color: var(--app-text-muted); }

@@ -24,23 +24,23 @@
 }
 
 .kanban-board__heading h2 {
-  color: #f8fafc;
+  color: var(--app-text);
   font-size: clamp(1.25rem, 2vw, 1.55rem);
 }
 
 .kanban-board__heading p {
   margin-top: 7px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   line-height: 1.5;
 }
 
 .kanban-board__result-count {
   flex-shrink: 0;
   padding: 8px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.13);
+  border: 1px solid var(--app-border-subtle);
   border-radius: 999px;
-  color: #94a3b8;
-  background: rgba(15, 23, 42, 0.65);
+  color: var(--app-text-muted);
+  background: var(--app-surface-translucent);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -69,13 +69,13 @@
 
 .kanban-board__columns::-webkit-scrollbar-track {
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.72);
+  background: var(--app-surface-translucent);
 }
 
 .kanban-board__columns::-webkit-scrollbar-thumb {
-  border: 2px solid rgba(15, 23, 42, 0.72);
+  border: 2px solid var(--app-surface-translucent);
   border-radius: 999px;
-  background: #334155;
+  background: var(--app-border-strong);
 }
 
 .kanban-board__columns::-webkit-scrollbar-thumb:hover {

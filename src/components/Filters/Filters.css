@@ -4,9 +4,9 @@
   gap: 24px;
   margin-top: 28px;
   padding: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
+  border: 1px solid var(--app-border);
   border-radius: 20px;
-  background: rgba(15, 23, 42, 0.76);
+  background: var(--app-surface-translucent);
   box-shadow: 0 16px 40px rgba(2, 6, 23, 0.16);
   backdrop-filter: blur(16px);
 }
@@ -29,13 +29,13 @@
 }
 
 .filters h2 {
-  color: #f8fafc;
+  color: var(--app-text);
   font-size: 1.25rem;
 }
 
 .filters p {
   margin-top: 8px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   line-height: 1.5;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .filters__label {
-  color: #cbd5e1;
+  color: var(--app-text-secondary);
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -94,7 +94,7 @@
 .filters__search-icon {
   position: absolute;
   left: 14px;
-  color: #64748b;
+  color: var(--app-text-subtle);
   pointer-events: none;
 }
 
@@ -102,10 +102,10 @@
 .filters select {
   width: 100%;
   height: 46px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  color: #e2e8f0;
-  background: rgba(2, 6, 23, 0.5);
+  color: var(--app-text);
+  background: var(--app-input-bg);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -121,19 +121,19 @@
 }
 
 .filters input::placeholder {
-  color: #64748b;
+  color: var(--app-text-subtle);
 }
 
 .filters input:focus,
 .filters select:focus {
   border-color: rgba(96, 165, 250, 0.62);
-  background: rgba(2, 6, 23, 0.72);
+  background: var(--app-input-focus);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
 .filters select option {
-  color: #e2e8f0;
-  background: #0f172a;
+  color: var(--app-text);
+  background: var(--app-surface);
 }
 
 .filters__input-clear {
@@ -145,13 +145,13 @@
   place-items: center;
   padding: 0;
   border-radius: 8px;
-  color: #94a3b8;
+  color: var(--app-text-muted);
   background: transparent;
 }
 
 .filters__input-clear:hover {
-  color: #f8fafc;
-  background: rgba(51, 65, 85, 0.7);
+  color: var(--app-text);
+  background: var(--app-surface-hover);
 }
 
 @media (max-width: 900px) {

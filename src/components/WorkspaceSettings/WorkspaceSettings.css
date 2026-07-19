@@ -415,6 +415,46 @@
   background: #dc2626;
 }
 
+/* Tokens compartilhados evitam uma segunda folha de estilos para o tema claro. */
+.workspace-settings__overlay { background: var(--app-overlay); }
+.workspace-settings {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-lg);
+}
+.workspace-settings > header h2,
+.workspace-settings h3,
+.workspace-settings__summary strong,
+.workspace-settings__identity strong,
+.workspace-settings__section-heading strong,
+.workspace-settings__form-title,
+.workspace-settings__member-heading { color: var(--app-text); }
+.workspace-settings > header button,
+.workspace-settings__avatar { background: var(--app-surface-raised); }
+.workspace-settings > header button,
+.workspace-settings label,
+.workspace-settings__identity { color: var(--app-text-secondary); }
+.workspace-settings__identity small,
+.workspace-settings__section-heading small,
+.workspace-settings__empty,
+.workspace-settings__team-tags small { color: var(--app-text-muted); }
+.workspace-settings__grid > section,
+.workspace-settings li,
+.workspace-settings__invitation-list article {
+  border-color: var(--app-border-subtle);
+  background: rgba(var(--app-bg-rgb), 0.3);
+}
+.workspace-settings input,
+.workspace-settings select {
+  border-color: var(--app-border-strong);
+  color: var(--app-text);
+  background: var(--app-input-bg);
+}
+.workspace-settings select option {
+  color: var(--app-text);
+  background: var(--app-surface);
+}
+
 .workspace-settings__message,
 .workspace-settings__empty {
   color: #93c5fd;

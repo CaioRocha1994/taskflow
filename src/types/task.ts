@@ -25,6 +25,7 @@ export interface Task {
   updatedAt: string;
   completedAt?: string;
   dueDate?: string;
+  deadlineAt?: string;
   tags: string[];
 }
 
@@ -42,6 +43,7 @@ export interface CreateTaskInput {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate?: string;
+  deadlineAt?: string;
   tags: string[];
 }
 
@@ -53,5 +55,6 @@ export interface UpdateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   dueDate?: string;
+  deadlineAt?: string;
   tags?: string[];
 }

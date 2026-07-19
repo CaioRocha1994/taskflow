@@ -164,3 +164,18 @@
     width: 100%;
   }
 }
+
+.delete-task-modal__overlay { background: var(--app-overlay); }
+.delete-task-modal {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-lg);
+}
+.delete-task-modal__content h2 { color: var(--app-text); }
+.delete-task-modal__content p { color: var(--app-text-muted); }
+.delete-task-modal__close,
+.delete-task-modal__button--secondary {
+  border-color: var(--app-border);
+  color: var(--app-text-secondary);
+  background: var(--app-surface-raised);
+}

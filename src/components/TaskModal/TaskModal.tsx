@@ -5,6 +5,7 @@ import {
 } from "react";
 
 import { FiX } from "react-icons/fi";
+import { TagInput } from "../TagInput/TagInput";
 
 import type {
   CreateTaskInput,
@@ -13,6 +14,7 @@ import type {
   TaskStatus,
 } from "../../types/task";
 import type { Team, WorkspaceMember } from "../../types/workspace";
+import type { Tag } from "../../types/tag";
 
 import {
   PRIORITY_LABELS,
@@ -29,6 +31,7 @@ interface TaskModalProps {
   members: WorkspaceMember[];
   currentUserId: string;
   canManage: boolean;
+  availableTags: Tag[];
   onClose: () => void;
   onCreate: (input: CreateTaskInput) => Promise<void>;
   onUpdate: (
@@ -44,8 +47,8 @@ interface TaskFormData {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  dueDate: string;
-  tags: string;
+  deadlineAt: string;
+  tags: string[];
 }
 
 const EMPTY_FORM: TaskFormData = {
@@ -55,9 +58,16 @@ const EMPTY_FORM: TaskFormData = {
   description: "",
   status: "backlog",
   priority: "medium",
-  dueDate: "",
-  tags: "",
+  deadlineAt: "",
+  tags: [],
 };
+
+function toDateTimeLocal(value?: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
 
 export function TaskModal({
   isOpen,
@@ -67,6 +77,7 @@ export function TaskModal({
   members,
   currentUserId,
   canManage,
+  availableTags,
   onClose,
   onCreate,
   onUpdate,
@@ -94,8 +105,8 @@ export function TaskModal({
         description: task.description,
         status: task.status,
         priority: task.priority,
-        dueDate: task.dueDate ?? "",
-        tags: task.tags.join(", "),
+        deadlineAt: toDateTimeLocal(task.deadlineAt),
+        tags: task.tags,
       });
 
       setTitleError("");
@@ -175,11 +186,8 @@ export function TaskModal({
       description: formData.description.trim(),
       status: formData.status,
       priority: formData.priority,
-      dueDate: formData.dueDate || undefined,
-      tags: formData.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      deadlineAt: formData.deadlineAt ? new Date(formData.deadlineAt).toISOString() : undefined,
+      tags: formData.tags,
     };
 
     try {
@@ -382,36 +390,21 @@ export function TaskModal({
             <span>Prazo</span>
 
             <input
-              type="date"
-              value={formData.dueDate}
+              type="datetime-local"
+              value={formData.deadlineAt}
               onChange={(event) =>
                 updateField(
-                  "dueDate",
+                  "deadlineAt",
                   event.target.value,
                 )
               }
             />
           </label>
 
-          <label className="task-modal__field">
+          <div className="task-modal__field">
             <span>Tags</span>
-
-            <input
-              type="text"
-              value={formData.tags}
-              placeholder="React, Front-End, UI"
-              onChange={(event) =>
-                updateField(
-                  "tags",
-                  event.target.value,
-                )
-              }
-            />
-
-            <small>
-              Separe as tags por vírgula.
-            </small>
-          </label>
+            <TagInput value={formData.tags} suggestions={availableTags} onChange={(tags) => updateField("tags", tags)} />
+          </div>
 
           <footer className="task-modal__footer">
             {formError && <p className="task-modal__error">{formError}</p>}

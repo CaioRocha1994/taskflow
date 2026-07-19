@@ -1,4 +1,5 @@
-import { FiBarChart2, FiColumns, FiLogOut, FiPlus, FiSettings, FiUser } from "react-icons/fi";
+import { FiBarChart2, FiColumns, FiLogOut, FiMoon, FiPlus, FiSettings, FiSun, FiUser } from "react-icons/fi";
+import { useUserPreferences } from "../../hooks/useUserPreferences";
 import type { Membership } from "../../types/workspace";
 import { NotificationsMenu } from "../NotificationsMenu/NotificationsMenu";
 import "./Header.css";
@@ -43,6 +44,7 @@ export function Header({
   onSignOut,
 }: HeaderProps) {
   const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  const { preferences, toggleTheme } = useUserPreferences();
 
   return (
     <header className="taskflow-header">
@@ -82,6 +84,16 @@ export function Header({
             userId={currentUserId}
             onOpenTask={onOpenNotificationTask}
           />
+          <button
+            type="button"
+            className="taskflow-header__button taskflow-header__button--secondary taskflow-header__theme-toggle"
+            aria-label={`Ativar tema ${preferences.theme === "dark" ? "claro" : "escuro"}`}
+            title={`Tema atual: ${preferences.theme === "dark" ? "Escuro" : "Claro"}`}
+            onClick={() => void toggleTheme()}
+          >
+            {preferences.theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
+            {preferences.theme === "dark" ? "Claro" : "Escuro"}
+          </button>
           <button type="button" className="taskflow-header__button taskflow-header__button--secondary" onClick={onAccountSettings}>
             <FiUser size={18} /> Minha conta
           </button>

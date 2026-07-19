@@ -96,6 +96,7 @@ function describeActivity(activity: TaskActivity): string {
   if (before.assignee_id !== after.assignee_id) changes.push("alterou o responsável");
   if (before.team_id !== after.team_id) changes.push("moveu a tarefa para outra equipe");
   if (before.due_date !== after.due_date) changes.push("alterou o prazo");
+  if (before.deadline_at !== after.deadline_at && before.due_date === after.due_date) changes.push("alterou o horário do prazo");
   if (before.title !== after.title) changes.push("alterou o título");
   if (before.description !== after.description) changes.push("atualizou a descrição");
   if (JSON.stringify(before.tags) !== JSON.stringify(after.tags)) changes.push("atualizou as tags");
@@ -305,7 +306,7 @@ export function TaskDetailsModal({
           <div className="task-details__dates">
             <div>
               <FiCalendar size={18} />
-              <span><small>Prazo</small><strong>{formatDate(task.dueDate)}</strong></span>
+              <span><small>Prazo</small><strong>{task.deadlineAt ? formatDateTime(task.deadlineAt) : formatDate(task.dueDate)}</strong></span>
             </div>
             <div>
               <FiClock size={18} />

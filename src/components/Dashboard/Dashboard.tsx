@@ -43,8 +43,17 @@ function parseDueDate(date: string) {
   return new Date(`${date}T00:00:00`);
 }
 
-function isOverdue(task: Task, today: Date) {
-  return Boolean(task.dueDate && task.status !== "done" && parseDueDate(task.dueDate) < today);
+function getDeadline(task: Task) {
+  if (task.deadlineAt) return new Date(task.deadlineAt);
+  if (!task.dueDate) return null;
+  const date = parseDueDate(task.dueDate);
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
+function isOverdue(task: Task) {
+  const deadline = getDeadline(task);
+  return Boolean(deadline && task.status !== "done" && deadline.getTime() < Date.now());
 }
 
 function formatDate(date: string) {
@@ -89,12 +98,11 @@ export function Dashboard({
       task.completedAt && new Date(task.completedAt) >= periodStart
     ));
     const overdueTasks = activeTasks
-      .filter((task) => isOverdue(task, today))
-      .sort((first, second) => parseDueDate(first.dueDate!).getTime() - parseDueDate(second.dueDate!).getTime());
+      .filter((task) => isOverdue(task))
+      .sort((first, second) => getDeadline(first)!.getTime() - getDeadline(second)!.getTime());
     const dueSoonTasks = activeTasks.filter((task) => {
-      if (!task.dueDate) return false;
-      const dueDate = parseDueDate(task.dueDate);
-      return dueDate >= today && dueDate <= nextWeek;
+      const deadline = getDeadline(task);
+      return Boolean(deadline && deadline >= today && deadline <= nextWeek);
     });
     const urgentTasks = activeTasks.filter((task) => task.priority === "urgent");
     const cycleTimes = completedTasks
@@ -106,11 +114,9 @@ export function Dashboard({
     const averageCycleTime = cycleTimes.length === 0
       ? null
       : cycleTimes.reduce((sum, value) => sum + value, 0) / cycleTimes.length;
-    const completedWithDueDate = completedTasks.filter((task) => task.dueDate && task.completedAt);
+    const completedWithDueDate = completedTasks.filter((task) => getDeadline(task) && task.completedAt);
     const onTimeTasks = completedWithDueDate.filter((task) => {
-      const dueDate = parseDueDate(task.dueDate!);
-      dueDate.setHours(23, 59, 59, 999);
-      return new Date(task.completedAt!) <= dueDate;
+      return new Date(task.completedAt!) <= getDeadline(task)!;
     });
 
     const statusCounts = Object.fromEntries(
@@ -131,7 +137,7 @@ export function Dashboard({
           total: teamTasks.length,
           active: teamActive.length,
           completed: teamCompleted.length,
-          overdue: teamActive.filter((task) => isOverdue(task, today)).length,
+          overdue: teamActive.filter((task) => isOverdue(task)).length,
           rate: percentage(teamCompleted.length, teamTasks.length),
         };
       })
@@ -149,7 +155,7 @@ export function Dashboard({
           id: member.userId,
           name: member.fullName,
           active: memberActive.length,
-          overdue: memberActive.filter((task) => isOverdue(task, today)).length,
+          overdue: memberActive.filter((task) => isOverdue(task)).length,
           urgent: memberActive.filter((task) => task.priority === "urgent").length,
           completed: memberTasks.filter((task) => task.status === "done").length,
         };
@@ -327,7 +333,7 @@ export function Dashboard({
               <button type="button" key={task.id} onClick={() => onOpenTask(task)}>
                 <span className={`dashboard__priority-dot dashboard__priority-dot--${task.priority}`} />
                 <span><strong>{task.title}</strong><small>{task.teamName} · {task.assigneeName || "Sem responsável"}</small></span>
-                <span><small>Venceu</small><strong>{formatDate(task.dueDate!)}</strong></span>
+                <span><small>Venceu</small><strong>{formatDate(task.deadlineAt ?? task.dueDate!)}</strong></span>
                 <FiArrowRight />
               </button>
             ))}

@@ -23,6 +23,7 @@ export type NotificationType =
   | "comment"
   | "due_today"
   | "due_tomorrow"
+  | "due_soon"
   | "overdue";
 
 export interface WorkspaceNotification {
