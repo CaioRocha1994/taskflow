@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { FiBell, FiCheck, FiLock, FiMail, FiMoon, FiSave, FiSun, FiUser, FiX } from "react-icons/fi";
+import { FiBell, FiCheck, FiLock, FiMoon, FiSave, FiSun, FiUser, FiX } from "react-icons/fi";
 import { useUserPreferences } from "../../hooks/useUserPreferences";
 import { getSupabase } from "../../lib/supabase";
 import { getAuthErrorMessage } from "../../utils/authErrors";
@@ -149,21 +149,6 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
               className={`account-settings__switch${preferences.browserNotificationsEnabled ? " account-settings__switch--active" : ""}`}
               disabled={busyKey === "browser-notifications"}
               onClick={() => void updateBrowserNotifications(!preferences.browserNotificationsEnabled)}
-            ><span /></button>
-          </div>
-
-          <div className="account-settings__preference-row">
-            <span><strong><FiMail /> Alertas por e-mail</strong><small>Receba avisos de tarefas próximas do prazo e atrasadas</small></span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={preferences.emailDueNotificationsEnabled}
-              className={`account-settings__switch${preferences.emailDueNotificationsEnabled ? " account-settings__switch--active" : ""}`}
-              disabled={busyKey === "preferences"}
-              onClick={() => void updatePreference(
-                { emailDueNotificationsEnabled: !preferences.emailDueNotificationsEnabled },
-                "Preferência de e-mail atualizada.",
-              )}
             ><span /></button>
           </div>
 

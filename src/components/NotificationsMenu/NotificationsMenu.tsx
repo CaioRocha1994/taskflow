@@ -5,6 +5,7 @@ import {
   FiCheck,
   FiClock,
   FiMessageSquare,
+  FiTrash2,
   FiUserCheck,
 } from "react-icons/fi";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -38,6 +39,7 @@ function NotificationIcon({ type }: { type: NotificationType }) {
 export function NotificationsMenu({ organizationId, userId, onOpenTask }: NotificationsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const store = useNotifications(organizationId, userId);
 
@@ -51,7 +53,10 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") {
+        if (isConfirmingClear) setIsConfirmingClear(false);
+        else setIsOpen(false);
+      }
     }
 
     document.addEventListener("mousedown", handleMouseDown);
@@ -60,6 +65,10 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
       document.removeEventListener("mousedown", handleMouseDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
+  }, [isOpen, isConfirmingClear]);
+
+  useEffect(() => {
+    if (!isOpen) setIsConfirmingClear(false);
   }, [isOpen]);
 
   async function openNotification(notificationId: string, taskId?: string) {
@@ -82,6 +91,16 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
     }
   }
 
+  async function clearAll() {
+    setMutationError("");
+    try {
+      await store.clearAll();
+      setIsConfirmingClear(false);
+    } catch {
+      setMutationError("Não foi possível limpar as notificações.");
+    }
+  }
+
   return (
     <div className="notifications-menu" ref={containerRef}>
       <button
@@ -100,14 +119,30 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
         <section className="notifications-menu__panel" aria-label="Central de notificações">
           <header>
             <div><strong>Notificações</strong><span>{store.unreadCount} não lida(s)</span></div>
-            {store.unreadCount > 0 && (
-              <button type="button" onClick={() => void markAllAsRead()}>
-                <FiCheck /> Marcar todas
-              </button>
-            )}
+            <div className="notifications-menu__header-actions">
+              {store.unreadCount > 0 && (
+                <button type="button" onClick={() => void markAllAsRead()}>
+                  <FiCheck /> Marcar todas
+                </button>
+              )}
+              {store.notifications.length > 0 && (
+                <button type="button" className="notifications-menu__clear-button" onClick={() => setIsConfirmingClear(true)}>
+                  <FiTrash2 /> Limpar
+                </button>
+              )}
+            </div>
           </header>
 
           <div className="notifications-menu__list">
+            {isConfirmingClear && (
+              <div className="notifications-menu__clear-confirmation" role="alertdialog" aria-label="Confirmar limpeza das notificações">
+                <span><strong>Limpar todas?</strong><small>Os avisos serão removidos desta central.</small></span>
+                <div>
+                  <button type="button" onClick={() => setIsConfirmingClear(false)}>Cancelar</button>
+                  <button type="button" onClick={() => void clearAll()}>Sim, limpar</button>
+                </div>
+              </div>
+            )}
             {store.isLoading && <p className="notifications-menu__state">Carregando...</p>}
             {(store.error || mutationError) && (
               <p className="notifications-menu__state notifications-menu__state--error">

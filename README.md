@@ -14,7 +14,7 @@ Kanban multiempresa para gestão de tarefas, equipes e usuários. O frontend usa
 - Responsável e equipe por tarefa
 - Kanban com drag-and-drop, busca, filtros, prioridades e prazos
 - Prazo com data e hora, alertas em tempo real e notificações do navegador
-- Alertas de prazo por e-mail com fila segura e Edge Function
+- Estrutura opcional para futuros alertas de prazo por e-mail
 - Tema claro/escuro persistido por usuário no PostgreSQL
 - Tags por empresa com autocomplete, criação automática e associação N:N
 - Histórico de criação, edição e exclusão no banco
@@ -65,9 +65,9 @@ Os modelos profissionais e o roteiro de configuração ficam em [`supabase/email
 
 Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na publicação do Realtime pelo painel do Supabase.
 
-### Alertas de prazo por e-mail
+### Alertas de prazo por e-mail (opcional)
 
-A função [`supabase/functions/due-task-notifications`](supabase/functions/due-task-notifications) processa os prazos e envia a fila pela API transacional da Brevo sem expor credenciais no navegador. Consulte o README da função para cadastrar os secrets, publicar e agendar sua execução a cada minuto.
+A função [`supabase/functions/due-task-notifications`](supabase/functions/due-task-notifications) está disponível para uma ativação futura. No momento, os alertas de tarefas ficam restritos à central do TaskFlow e às notificações do navegador.
 
 ## Deploy no Vercel
 

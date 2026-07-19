@@ -20,7 +20,7 @@ interface PreferencesRow {
 const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "dark",
   browserNotificationsEnabled: false,
-  emailDueNotificationsEnabled: true,
+  emailDueNotificationsEnabled: false,
   dueSoonMinutes: 15,
 };
 

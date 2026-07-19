@@ -1,12 +1,13 @@
 begin;
 
-select plan(14);
+select plan(15);
 
 select has_table('public', 'user_preferences', 'Tabela de preferências criada');
 select has_table('public', 'tags', 'Tabela de tags criada');
 select has_table('public', 'task_tags', 'Tabela N:N de tags criada');
 select has_column('public', 'tasks', 'deadline_at', 'Tarefa possui prazo com data e hora');
 select has_column('public', 'notifications', 'email_status', 'Notificação possui estado de envio de e-mail');
+select has_column('public', 'notifications', 'dismissed_at', 'Notificação pode ser removida da central sem perder a deduplicação');
 
 select col_type_is('public', 'tasks', 'deadline_at', 'timestamp with time zone', 'Prazo usa timestamptz');
 select col_default_is('public', 'user_preferences', 'theme', '''dark''::text', 'Tema escuro é o padrão');

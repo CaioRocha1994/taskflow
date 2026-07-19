@@ -51,6 +51,7 @@ export function useNotifications(organizationId: string, userId: string) {
       .select("id, task_id, type, title, body, read_at, created_at")
       .eq("organization_id", organizationId)
       .eq("user_id", userId)
+      .is("dismissed_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -127,11 +128,24 @@ export function useNotifications(organizationId: string, userId: string) {
       .update({ read_at: readAt })
       .eq("organization_id", organizationId)
       .eq("user_id", userId)
+      .is("dismissed_at", null)
       .is("read_at", null);
     if (mutationError) throw mutationError;
     setNotifications((current) => current.map((item) => (
       item.readAt ? item : { ...item, readAt }
     )));
+  }
+
+  async function clearAll() {
+    const dismissedAt = new Date().toISOString();
+    const { error: mutationError } = await getSupabase()
+      .from("notifications")
+      .update({ dismissed_at: dismissedAt })
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
+      .is("dismissed_at", null);
+    if (mutationError) throw mutationError;
+    setNotifications([]);
   }
 
   const unreadCount = useMemo(
@@ -146,6 +160,7 @@ export function useNotifications(organizationId: string, userId: string) {
     error,
     markAsRead,
     markAllAsRead,
+    clearAll,
     refresh: loadNotifications,
   };
 }

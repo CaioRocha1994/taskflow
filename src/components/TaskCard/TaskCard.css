@@ -211,3 +211,27 @@
   font-size: 0.76rem;
   font-weight: 700;
 }
+
+html[data-theme="light"] .task-card__priority--low {
+  border-color: #86efac;
+  color: #166534;
+  background: #dcfce7;
+}
+
+html[data-theme="light"] .task-card__priority--medium {
+  border-color: #fde047;
+  color: #713f12;
+  background: #fef9c3;
+}
+
+html[data-theme="light"] .task-card__priority--high {
+  border-color: #fdba74;
+  color: #9a3412;
+  background: #ffedd5;
+}
+
+html[data-theme="light"] .task-card__priority--urgent {
+  border-color: #fca5a5;
+  color: #991b1b;
+  background: #fee2e2;
+}
