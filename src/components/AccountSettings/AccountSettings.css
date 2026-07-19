@@ -190,6 +190,7 @@
 .account-settings__preference-row,
 .account-settings__preference-select {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 16px;

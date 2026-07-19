@@ -93,10 +93,10 @@ export function HeaderMenu({
         aria-expanded={isOpen}
         aria-controls={panelId}
         aria-haspopup="menu"
+        aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
         onClick={() => setIsOpen((current) => !current)}
       >
         <FiMenu size={18} />
-        Menu
         <FiChevronDown className="header-menu__chevron" aria-hidden="true" />
       </button>
 
