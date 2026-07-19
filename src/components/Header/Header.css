@@ -219,11 +219,21 @@
 
   .taskflow-header__actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .taskflow-header__button {
     width: 100%;
+  }
+
+  .taskflow-header__new-task {
+    grid-column: 1 / -1;
+  }
+
+  .taskflow-header__organization--desktop,
+  .taskflow-header__dashboard--desktop {
+    display: none;
   }
 
   .taskflow-header__metrics {

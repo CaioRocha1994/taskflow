@@ -1,6 +1,7 @@
-import { FiBarChart2, FiColumns, FiLogOut, FiMoon, FiPlus, FiSettings, FiSun, FiUser } from "react-icons/fi";
+import { FiBarChart2, FiColumns, FiPlus } from "react-icons/fi";
 import { useUserPreferences } from "../../hooks/useUserPreferences";
 import type { Membership } from "../../types/workspace";
+import { HeaderMenu } from "../HeaderMenu/HeaderMenu";
 import { NotificationsMenu } from "../NotificationsMenu/NotificationsMenu";
 import "./Header.css";
 
@@ -60,20 +61,18 @@ export function Header({
 
         <div className="taskflow-header__actions">
           {memberships.length > 1 && (
-            <select className="taskflow-header__organization" value={activeOrganizationId} onChange={(event) => onOrganizationChange(event.target.value)}>
+            <select className="taskflow-header__organization taskflow-header__organization--desktop" value={activeOrganizationId} onChange={(event) => onOrganizationChange(event.target.value)} aria-label="Selecionar empresa">
               {memberships.map((membership) => (
                 <option key={membership.organizationId} value={membership.organizationId}>{membership.organization.name}</option>
               ))}
             </select>
           )}
-          {canManage && (
-            <button type="button" className="taskflow-header__button taskflow-header__button--secondary" onClick={onSettings}>
-              <FiSettings size={18} /> Administrar
-            </button>
-          )}
+          <button type="button" className="taskflow-header__button taskflow-header__button--primary taskflow-header__new-task" onClick={onCreateTask}>
+            <FiPlus size={20} /> Nova tarefa
+          </button>
           <button
             type="button"
-            className={`taskflow-header__button taskflow-header__button--secondary${isDashboardOpen ? " taskflow-header__button--active" : ""}`}
+            className={`taskflow-header__button taskflow-header__button--secondary taskflow-header__dashboard--desktop${isDashboardOpen ? " taskflow-header__button--active" : ""}`}
             onClick={onToggleDashboard}
           >
             {isDashboardOpen ? <FiColumns size={18} /> : <FiBarChart2 size={18} />}
@@ -84,25 +83,20 @@ export function Header({
             userId={currentUserId}
             onOpenTask={onOpenNotificationTask}
           />
-          <button
-            type="button"
-            className="taskflow-header__button taskflow-header__button--secondary taskflow-header__theme-toggle"
-            aria-label={`Ativar tema ${preferences.theme === "dark" ? "claro" : "escuro"}`}
-            title={`Tema atual: ${preferences.theme === "dark" ? "Escuro" : "Claro"}`}
-            onClick={() => void toggleTheme()}
-          >
-            {preferences.theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
-            {preferences.theme === "dark" ? "Claro" : "Escuro"}
-          </button>
-          <button type="button" className="taskflow-header__button taskflow-header__button--secondary" onClick={onAccountSettings}>
-            <FiUser size={18} /> Minha conta
-          </button>
-          <button type="button" className="taskflow-header__button taskflow-header__button--primary" onClick={onCreateTask}>
-            <FiPlus size={20} /> Nova tarefa
-          </button>
-          <button type="button" className="taskflow-header__button taskflow-header__button--secondary" title={`Sair da conta de ${userName}`} onClick={onSignOut}>
-            <FiLogOut size={18} /> Sair
-          </button>
+          <HeaderMenu
+            theme={preferences.theme}
+            memberships={memberships}
+            activeOrganizationId={activeOrganizationId}
+            isDashboardOpen={isDashboardOpen}
+            canManage={canManage}
+            userName={userName}
+            onToggleDashboard={onToggleDashboard}
+            onOrganizationChange={onOrganizationChange}
+            onAccountSettings={onAccountSettings}
+            onSettings={onSettings}
+            onToggleTheme={() => void toggleTheme()}
+            onSignOut={onSignOut}
+          />
         </div>
       </div>
 
