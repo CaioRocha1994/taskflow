@@ -117,12 +117,11 @@
   }
 
   .header-menu__panel {
-    position: fixed;
-    top: 72px;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-height: calc(100vh - 90px);
+    top: calc(100% + 10px);
+    right: 0;
+    left: auto;
+    width: min(330px, calc(100vw - 40px));
+    max-height: min(420px, calc(100vh - 120px));
     overflow-y: auto;
   }
 
