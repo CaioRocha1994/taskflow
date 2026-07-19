@@ -198,6 +198,10 @@
   color: var(--app-text-secondary);
 }
 
+.account-settings label.account-settings__preference-select {
+  flex-direction: row;
+}
+
 .account-settings__preference-row > span,
 .account-settings__preference-select > span {
   display: flex;
