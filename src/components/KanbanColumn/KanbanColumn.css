@@ -1,7 +1,20 @@
 .kanban-column {
+  --kanban-card-standard-height: 230px;
+  --kanban-card-gap: 14px;
+  --kanban-tasks-padding: 16px;
+  --kanban-three-card-height: calc(
+    var(--kanban-card-standard-height)
+    + var(--kanban-card-standard-height)
+    + var(--kanban-card-standard-height)
+    + var(--kanban-card-gap)
+    + var(--kanban-card-gap)
+    + var(--kanban-tasks-padding)
+    + var(--kanban-tasks-padding)
+  );
+
   display: flex;
   min-width: 310px;
-  min-height: 560px;
+  align-self: start;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--app-border-subtle);
@@ -116,11 +129,46 @@
 
 .kanban-column__tasks {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
+  gap: var(--kanban-card-gap);
+  padding: var(--kanban-tasks-padding);
   transition: background 0.2s ease;
+}
+
+.kanban-column--with-actions {
+  --kanban-card-standard-height: 290px;
+}
+
+.kanban-column__tasks--empty {
+  min-height: calc(
+    var(--kanban-card-standard-height)
+    + var(--kanban-tasks-padding)
+    + var(--kanban-tasks-padding)
+  );
+}
+
+.kanban-column__tasks--scrollable {
+  height: var(--kanban-three-card-height);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-color: var(--app-border-strong) var(--app-surface-translucent);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.kanban-column__tasks--scrollable::-webkit-scrollbar {
+  width: 9px;
+}
+
+.kanban-column__tasks--scrollable::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--app-surface-translucent);
+}
+
+.kanban-column__tasks--scrollable::-webkit-scrollbar-thumb {
+  border: 2px solid var(--app-surface-translucent);
+  border-radius: 999px;
+  background: var(--app-border-strong);
 }
 
 .kanban-column--over .kanban-column__tasks {
@@ -161,8 +209,7 @@
 
 .kanban-column__empty {
   display: flex;
-  min-height: 180px;
-  flex: 1;
+  min-height: var(--kanban-card-standard-height);
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -206,6 +253,9 @@
 
 @media (max-width: 760px) {
   .kanban-column {
+    --kanban-card-standard-height: 220px;
+    --kanban-tasks-padding: 14px;
+
     min-width: 285px;
   }
 
@@ -214,6 +264,10 @@
   }
 
   .kanban-column__tasks {
-    padding: 14px;
+    padding: var(--kanban-tasks-padding);
+  }
+
+  .kanban-column--with-actions {
+    --kanban-card-standard-height: 270px;
   }
 }

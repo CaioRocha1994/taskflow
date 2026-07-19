@@ -17,6 +17,8 @@ import type {
 
 import "./KanbanColumn.css";
 
+const MAX_VISIBLE_CARDS = 3;
+
 interface KanbanColumnProps {
   column: KanbanColumnType;
   tasks: Task[];
@@ -98,13 +100,18 @@ export function KanbanColumn({
       status: column.id,
     },
   });
+  const taskListState = tasks.length === 0
+    ? "empty"
+    : tasks.length > MAX_VISIBLE_CARDS
+      ? "scrollable"
+      : "content";
 
   return (
     <section
       ref={setNodeRef}
       className={`kanban-column ${
         isOver ? "kanban-column--over" : ""
-      }`}
+      }${canManage ? " kanban-column--with-actions" : ""}`}
     >
       <header className="kanban-column__header">
         <div>
@@ -133,7 +140,7 @@ export function KanbanColumn({
         </button>
       </header>
 
-      <div className="kanban-column__tasks">
+      <div className={`kanban-column__tasks kanban-column__tasks--${taskListState}`}>
         {tasks.map((task) => (
           <DraggableTaskCard
             key={task.id}
