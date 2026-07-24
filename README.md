@@ -69,20 +69,23 @@ Para eventos instantâneos entre usuários, habilite a tabela `public.tasks` na 
 
 A função [`supabase/functions/due-task-notifications`](supabase/functions/due-task-notifications) está disponível para uma ativação futura. No momento, os alertas de tarefas ficam restritos à central do TaskFlow e às notificações do navegador.
 
-## Deploy no Vercel
+## Deploy na Cloudflare
 
-Configure no projeto Vercel as mesmas variáveis:
+O frontend é publicado como um Cloudflare Worker com Static Assets e atende diretamente:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `https://crtechweb.com.br/taskflow`
+- `https://crtechweb.com.br/taskflow/login`
+- `https://crtechweb.com.br/taskflow/app`
 
-Nunca use `service_role`, secret key ou senha do banco no frontend. A chave publicável identifica o projeto; as políticas RLS são responsáveis pela autorização.
+As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` são incorporadas durante o build pelo Vite. Nunca use `service_role`, secret key ou senha do banco no frontend. A chave publicável identifica o projeto; as políticas RLS são responsáveis pela autorização.
 
-Depois, faça um novo deploy. O comando de build permanece:
+Depois de autenticar o Wrangler, publique com:
 
 ```bash
-npm run build
+npm run deploy:cloudflare
 ```
+
+O Worker remove o prefixo `/taskflow` apenas ao buscar os arquivos estáticos e devolve `index.html` para as rotas internas da SPA.
 
 ## Modelo de permissão
 

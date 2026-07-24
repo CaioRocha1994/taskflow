@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "taskflow",
+  "main": "./cloudflare/worker.js",
+  "compatibility_date": "2026-07-24",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  },
+  "routes": [
+    {
+      "pattern": "crtechweb.com.br/taskflow*",
+      "zone_name": "crtechweb.com.br"
+    }
+  ]
+}

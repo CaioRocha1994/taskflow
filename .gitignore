@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 supabase/.temp/
+.wrangler/
+.wrangler-dry-run/
 
 # Editor directories and files
 .vscode/*
