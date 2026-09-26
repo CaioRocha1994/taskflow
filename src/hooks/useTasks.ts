@@ -6,6 +6,7 @@ import type { Team, WorkspaceMember } from "../types/workspace";
 interface TaskRow {
   id: string;
   organization_id: string;
+  project_id: string;
   team_id: string;
   assignee_id: string | null;
   title: string;
@@ -27,6 +28,7 @@ function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task 
   return {
     id: row.id,
     organizationId: row.organization_id,
+    projectId: row.project_id,
     teamId: row.team_id,
     teamName: team?.name ?? "Equipe",
     assigneeId: row.assignee_id ?? undefined,
@@ -49,6 +51,7 @@ function mapTask(row: TaskRow, teams: Team[], members: WorkspaceMember[]): Task 
 
 export function useTasks(
   organizationId: string,
+  projectId: string,
   teams: Team[],
   members: WorkspaceMember[],
 ) {
@@ -57,43 +60,45 @@ export function useTasks(
   const [error, setError] = useState("");
 
   const loadTasks = useCallback(async () => {
-    if (!organizationId) return;
+    if (!organizationId || !projectId) return;
     setIsLoading(true);
     setError("");
     const { data, error: queryError } = await getSupabase()
       .from("tasks")
       .select("*, task_tags(tag:tags(id, name))")
       .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .order("created_at", { ascending: true });
 
     if (queryError) setError(queryError.message);
     else setTasks(((data ?? []) as TaskRow[]).map((row) => mapTask(row, teams, members)));
     setIsLoading(false);
-  }, [organizationId, teams, members]);
+  }, [organizationId, projectId, teams, members]);
 
   useEffect(() => {
     void loadTasks();
   }, [loadTasks]);
 
   useEffect(() => {
-    if (!organizationId) return;
+    if (!organizationId || !projectId) return;
     const channel = getSupabase()
-      .channel(`tasks:${organizationId}`)
+      .channel(`tasks:${projectId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tasks", filter: `organization_id=eq.${organizationId}` },
+        { event: "*", schema: "public", table: "tasks", filter: `project_id=eq.${projectId}` },
         () => void loadTasks(),
       )
       .subscribe();
     return () => {
       void getSupabase().removeChannel(channel);
     };
-  }, [organizationId, loadTasks]);
+  }, [organizationId, projectId, loadTasks]);
 
   async function createTask(input: CreateTaskInput): Promise<void> {
-    const { error: mutationError } = await getSupabase().rpc("save_task_with_tags", {
+    const { error: mutationError } = await getSupabase().rpc("save_project_task_with_tags", {
       p_task_id: null,
       p_organization_id: organizationId,
+      p_project_id: projectId,
       p_team_id: input.teamId,
       p_assignee_id: input.assigneeId || null,
       p_title: input.title,
@@ -116,9 +121,10 @@ export function useTasks(
       && input.priority !== undefined
       && input.tags !== undefined
     ) {
-      const { error: saveError } = await getSupabase().rpc("save_task_with_tags", {
+      const { error: saveError } = await getSupabase().rpc("save_project_task_with_tags", {
         p_task_id: taskId,
         p_organization_id: organizationId,
+        p_project_id: projectId,
         p_team_id: input.teamId,
         p_assignee_id: input.assigneeId || null,
         p_title: input.title,
@@ -147,7 +153,8 @@ export function useTasks(
       .from("tasks")
       .update(payload)
       .eq("id", taskId)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .eq("project_id", projectId);
     if (mutationError) throw mutationError;
     await loadTasks();
   }
@@ -157,7 +164,8 @@ export function useTasks(
       .from("tasks")
       .delete()
       .eq("id", taskId)
-      .eq("organization_id", organizationId);
+      .eq("organization_id", organizationId)
+      .eq("project_id", projectId);
     if (mutationError) throw mutationError;
     await loadTasks();
   }

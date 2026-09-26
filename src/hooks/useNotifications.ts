@@ -5,6 +5,7 @@ import type { NotificationType, WorkspaceNotification } from "../types/collabora
 
 interface NotificationRow {
   id: string;
+  project_id: string;
   task_id: string | null;
   type: NotificationType;
   title: string;
@@ -16,6 +17,7 @@ interface NotificationRow {
 function mapNotification(row: NotificationRow): WorkspaceNotification {
   return {
     id: row.id,
+    projectId: row.project_id,
     taskId: row.task_id ?? undefined,
     type: row.type,
     title: row.title,
@@ -25,19 +27,19 @@ function mapNotification(row: NotificationRow): WorkspaceNotification {
   };
 }
 
-export function useNotifications(organizationId: string, userId: string) {
+export function useNotifications(organizationId: string, projectId: string, userId: string) {
   const { preferences } = useUserPreferences();
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadNotifications = useCallback(async () => {
-    if (!organizationId || !userId) return;
+    if (!organizationId || !projectId || !userId) return;
 
     setError("");
     const client = getSupabase();
     const { error: dueNotificationsError } = await client.rpc("refresh_due_notifications", {
-      p_organization_id: organizationId,
+      p_organization_id: projectId,
     });
 
     if (dueNotificationsError) {
@@ -48,7 +50,7 @@ export function useNotifications(organizationId: string, userId: string) {
 
     const { data, error: queryError } = await client
       .from("notifications")
-      .select("id, task_id, type, title, body, read_at, created_at")
+      .select("id, project_id, task_id, type, title, body, read_at, created_at")
       .eq("organization_id", organizationId)
       .eq("user_id", userId)
       .is("dismissed_at", null)
@@ -80,7 +82,7 @@ export function useNotifications(organizationId: string, userId: string) {
       }
     }
     setIsLoading(false);
-  }, [organizationId, preferences.browserNotificationsEnabled, userId]);
+  }, [organizationId, projectId, preferences.browserNotificationsEnabled, userId]);
 
   useEffect(() => {
     setNotifications([]);
@@ -93,7 +95,7 @@ export function useNotifications(organizationId: string, userId: string) {
 
     const client = getSupabase();
     const channel = client
-      .channel(`notifications:${userId}:${organizationId}`)
+      .channel(`notifications:${userId}:${projectId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
@@ -106,7 +108,7 @@ export function useNotifications(organizationId: string, userId: string) {
       window.removeEventListener("focus", handleFocus);
       void client.removeChannel(channel);
     };
-  }, [loadNotifications, organizationId, userId]);
+  }, [loadNotifications, organizationId, projectId, userId]);
 
   async function markAsRead(notificationId: string) {
     const readAt = new Date().toISOString();

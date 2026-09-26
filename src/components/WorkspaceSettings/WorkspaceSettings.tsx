@@ -10,13 +10,15 @@ import {
   FiX,
 } from "react-icons/fi";
 import { getSupabase } from "../../lib/supabase";
-import type { MembershipRole, Team, WorkspaceMember } from "../../types/workspace";
+import type { MembershipRole, ProjectStatus, Team, WorkspaceMember } from "../../types/workspace";
 import { TASKFLOW_PATHS } from "../../utils/routes";
 import "./WorkspaceSettings.css";
 
 interface WorkspaceSettingsProps {
   isOpen: boolean;
   organizationId: string;
+  projectId: string;
+  projectName: string;
   currentUserId: string;
   teams: Team[];
   members: WorkspaceMember[];
@@ -47,6 +49,8 @@ function invitationUrl(token: string) {
 export function WorkspaceSettings({
   isOpen,
   organizationId,
+  projectId,
+  projectName,
   currentUserId,
   teams,
   members,
@@ -65,15 +69,20 @@ export function WorkspaceSettings({
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(false);
   const [busyKey, setBusyKey] = useState("");
   const [memberPendingRemoval, setMemberPendingRemoval] = useState<WorkspaceMember | null>(null);
+  const [projectLabel, setProjectLabel] = useState(projectName);
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectColor, setProjectColor] = useState("#d71920");
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus>("active");
 
   const loadInvitations = useCallback(async () => {
-    if (!isOpen || !organizationId) return;
+    if (!isOpen || !organizationId || !projectId) return;
 
     setIsLoadingInvitations(true);
     const { data, error } = await getSupabase()
       .from("invitations")
       .select("id, email, role, team_id, token, expires_at, created_at")
       .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .is("accepted_at", null)
       .order("created_at", { ascending: false });
 
@@ -83,7 +92,7 @@ export function WorkspaceSettings({
       setInvitations((data ?? []) as PendingInvitation[]);
     }
     setIsLoadingInvitations(false);
-  }, [isOpen, organizationId]);
+  }, [isOpen, organizationId, projectId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,6 +112,21 @@ export function WorkspaceSettings({
     void loadInvitations();
   }, [loadInvitations]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    async function loadProject() {
+      const { data, error } = await getSupabase().from("projects")
+        .select("name, description, color, status").eq("id", projectId).single();
+      if (cancelled) return;
+      if (error) { setMessage(error.message); return; }
+      setProjectLabel(data.name); setProjectDescription(data.description);
+      setProjectColor(data.color); setProjectStatus(data.status);
+    }
+    void loadProject();
+    return () => { cancelled = true; };
+  }, [isOpen, projectId]);
+
   if (!isOpen) return null;
 
   async function createTeam(event: FormEvent) {
@@ -111,6 +135,7 @@ export function WorkspaceSettings({
     setBusyKey("create-team");
     const { error } = await getSupabase().from("teams").insert({
       organization_id: organizationId,
+      project_id: projectId,
       name: teamName.trim(),
     });
     setBusyKey("");
@@ -121,6 +146,17 @@ export function WorkspaceSettings({
       setMessage("Equipe criada com sucesso.");
       onChanged();
     }
+  }
+
+  async function saveProject(event: FormEvent) {
+    event.preventDefault();
+    setBusyKey("project"); setMessage("");
+    const { error } = await getSupabase().from("projects").update({
+      name: projectLabel.trim(), description: projectDescription.trim(), color: projectColor, status: projectStatus,
+    }).eq("id", projectId);
+    setBusyKey("");
+    if (error) setMessage(error.message);
+    else { setMessage("Configurações do projeto atualizadas."); onChanged(); }
   }
 
   async function createInvitation(event: FormEvent) {
@@ -134,6 +170,7 @@ export function WorkspaceSettings({
       .from("invitations")
       .delete()
       .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .eq("email", normalizedEmail)
       .is("accepted_at", null);
 
@@ -147,6 +184,7 @@ export function WorkspaceSettings({
       .from("invitations")
       .insert({
         organization_id: organizationId,
+        project_id: projectId,
         team_id: inviteTeamId || null,
         email: normalizedEmail,
         role: inviteRole,
@@ -162,16 +200,10 @@ export function WorkspaceSettings({
 
     const link = invitationUrl(data.token);
     setInviteLink(link);
-    const { error: emailError } = await client.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: { emailRedirectTo: link, shouldCreateUser: true },
-    });
 
     setBusyKey("");
     setInviteEmail("");
-    setMessage(emailError
-      ? "O convite foi criado, mas o e-mail não pôde ser enviado. Copie e compartilhe o link abaixo."
-      : "Convite enviado por e-mail. O link também está disponível abaixo.");
+    setMessage("Convite criado e adicionado à fila de e-mail. O link também está disponível abaixo.");
     await loadInvitations();
   }
 
@@ -181,6 +213,7 @@ export function WorkspaceSettings({
     setBusyKey("add-team-member");
     const { error } = await getSupabase().from("team_members").insert({
       organization_id: organizationId,
+      project_id: projectId,
       team_id: membershipTeamId,
       user_id: membershipUserId,
     });
@@ -198,9 +231,9 @@ export function WorkspaceSettings({
     setMessage("");
     setBusyKey(`role-${userId}`);
     const { error } = await getSupabase()
-      .from("organization_members")
+      .from("project_members")
       .update({ role })
-      .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .eq("user_id", userId);
     setBusyKey("");
 
@@ -218,6 +251,7 @@ export function WorkspaceSettings({
       .from("team_members")
       .delete()
       .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .eq("user_id", userId)
       .eq("team_id", teamId);
     setBusyKey("");
@@ -234,16 +268,16 @@ export function WorkspaceSettings({
 
     setMessage("");
     setBusyKey(`remove-${memberPendingRemoval.userId}`);
-    const { error } = await getSupabase()
-      .from("organization_members")
-      .delete()
-      .eq("organization_id", organizationId)
-      .eq("user_id", memberPendingRemoval.userId);
+    const client = getSupabase();
+    const { error: unassignError } = await client.from("tasks").update({ assignee_id: null })
+      .eq("project_id", projectId).eq("assignee_id", memberPendingRemoval.userId);
+    const { error } = unassignError ? { error: unassignError } : await client
+      .from("project_members").delete().eq("project_id", projectId).eq("user_id", memberPendingRemoval.userId);
     setBusyKey("");
 
     if (error) setMessage(error.message);
     else {
-      setMessage(`${memberPendingRemoval.fullName} foi removido(a) da empresa.`);
+      setMessage(`${memberPendingRemoval.fullName} foi removido(a) do projeto.`);
       setMemberPendingRemoval(null);
       onChanged();
     }
@@ -256,6 +290,7 @@ export function WorkspaceSettings({
       .from("invitations")
       .delete()
       .eq("organization_id", organizationId)
+      .eq("project_id", projectId)
       .eq("id", invitationId);
     setBusyKey("");
 
@@ -277,10 +312,18 @@ export function WorkspaceSettings({
         <header>
           <div>
             <span>Administração</span>
-            <h2 id="workspace-settings-title">Empresa, equipes e acessos</h2>
+            <h2 id="workspace-settings-title">{projectName}: equipes e acessos</h2>
           </div>
           <button type="button" aria-label="Fechar" onClick={onClose}><FiX size={21} /></button>
         </header>
+
+        <form className="workspace-settings__project-form" onSubmit={saveProject}>
+          <label><span>Nome do projeto</span><input required minLength={2} maxLength={100} value={projectLabel} onChange={(event) => setProjectLabel(event.target.value)} /></label>
+          <label><span>Descrição</span><input maxLength={1000} value={projectDescription} onChange={(event) => setProjectDescription(event.target.value)} /></label>
+          <label><span>Cor</span><input type="color" value={projectColor} onChange={(event) => setProjectColor(event.target.value)} /></label>
+          <label><span>Status</span><select value={projectStatus} onChange={(event) => setProjectStatus(event.target.value as ProjectStatus)}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>
+          <button disabled={busyKey === "project"}>{busyKey === "project" ? "Salvando..." : "Salvar projeto"}</button>
+        </form>
 
         <div className="workspace-settings__summary">
           <div><FiUsers /><span><strong>{members.length}</strong> usuários</span></div>
@@ -449,8 +492,8 @@ export function WorkspaceSettings({
         {memberPendingRemoval && (
           <div className="workspace-settings__confirmation" role="alert">
             <div>
-              <strong>Remover {memberPendingRemoval.fullName} da empresa?</strong>
-              <span>O acesso será encerrado e as tarefas atribuídas ficarão sem responsável.</span>
+              <strong>Remover {memberPendingRemoval.fullName} do projeto?</strong>
+              <span>O acesso a este projeto será encerrado e as tarefas atribuídas ficarão sem responsável.</span>
             </div>
             <button type="button" onClick={() => setMemberPendingRemoval(null)}>Cancelar</button>
             <button type="button" className="workspace-settings__confirm-remove" disabled={busyKey === `remove-${memberPendingRemoval.userId}`} onClick={() => void removeMember()}>

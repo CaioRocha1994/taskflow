@@ -4,6 +4,7 @@ import {
   FiBriefcase,
   FiChevronDown,
   FiColumns,
+  FiFolder,
   FiLogOut,
   FiMenu,
   FiMoon,
@@ -12,18 +13,23 @@ import {
   FiUser,
 } from "react-icons/fi";
 import type { AppTheme } from "../../types/preferences";
-import type { Membership } from "../../types/workspace";
+import type { Membership, ProjectMembership } from "../../types/workspace";
 import "./HeaderMenu.css";
 
 interface HeaderMenuProps {
   theme: AppTheme;
   memberships: Membership[];
+  projectMemberships: ProjectMembership[];
   activeOrganizationId: string;
+  activeProjectId: string;
   isDashboardOpen: boolean;
+  isProjectsOpen: boolean;
   canManage: boolean;
   userName: string;
   onToggleDashboard: () => void;
+  onToggleProjects: () => void;
   onOrganizationChange: (id: string) => void;
+  onProjectChange: (id: string) => void;
   onAccountSettings: () => void;
   onSettings: () => void;
   onToggleTheme: () => void;
@@ -33,12 +39,17 @@ interface HeaderMenuProps {
 export function HeaderMenu({
   theme,
   memberships,
+  projectMemberships,
   activeOrganizationId,
+  activeProjectId,
   isDashboardOpen,
+  isProjectsOpen,
   canManage,
   userName,
   onToggleDashboard,
+  onToggleProjects,
   onOrganizationChange,
+  onProjectChange,
   onAccountSettings,
   onSettings,
   onToggleTheme,
@@ -116,6 +127,18 @@ export function HeaderMenu({
             </span>
           </button>
 
+          <button type="button" role="menuitem" className={`header-menu__item header-menu__mobile-only${isProjectsOpen ? " header-menu__item--active" : ""}`} onClick={() => runAction(onToggleProjects)}>
+            <FiFolder />
+            <span><strong>Projetos</strong><small>Trocar ou criar um projeto</small></span>
+          </button>
+
+          <label className="header-menu__organization">
+            <span><FiFolder /> Projeto</span>
+            <select value={activeProjectId} aria-label="Selecionar projeto" onChange={(event) => { setIsOpen(false); onProjectChange(event.target.value); }}>
+              {projectMemberships.filter(({ project }) => project.status === "active").map(({ project }) => <option key={project.id} value={project.id}>{project.name}</option>)}
+            </select>
+          </label>
+
           {memberships.length > 1 && (
             <label className="header-menu__organization">
               <span><FiBriefcase /> Empresa</span>
@@ -144,7 +167,7 @@ export function HeaderMenu({
           {canManage && (
             <button type="button" role="menuitem" className="header-menu__item" onClick={() => runAction(onSettings)}>
               <FiSettings />
-              <span><strong>Administrar</strong><small>Empresa, equipes e usuários</small></span>
+              <span><strong>Administrar</strong><small>Projeto, equipes e usuários</small></span>
             </button>
           )}
 

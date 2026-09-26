@@ -1,10 +1,13 @@
 begin;
 
-select plan(15);
+select plan(19);
 
 select has_table('public', 'user_preferences', 'Tabela de preferências criada');
 select has_table('public', 'tags', 'Tabela de tags criada');
 select has_table('public', 'task_tags', 'Tabela N:N de tags criada');
+select has_table('public', 'projects', 'Tabela de projetos criada');
+select has_table('public', 'project_members', 'Tabela de membros por projeto criada');
+select has_table('public', 'notification_deliveries', 'Fila transacional de e-mails criada');
 select has_column('public', 'tasks', 'deadline_at', 'Tarefa possui prazo com data e hora');
 select has_column('public', 'notifications', 'email_status', 'Notificação possui estado de envio de e-mail');
 select has_column('public', 'notifications', 'dismissed_at', 'Notificação pode ser removida da central sem perder a deduplicação');
@@ -17,6 +20,11 @@ select has_function('public', 'save_task_with_tags', array[
   'uuid', 'uuid', 'uuid', 'uuid', 'text', 'text',
   'task_status', 'task_priority', 'timestamp with time zone', 'text[]'
 ], 'RPC transacional de tarefa e tags existe');
+
+select has_function('public', 'save_project_task_with_tags', array[
+  'uuid', 'uuid', 'uuid', 'uuid', 'uuid', 'text', 'text',
+  'task_status', 'task_priority', 'timestamp with time zone', 'text[]'
+], 'RPC transacional por projeto existe');
 
 select has_function('public', 'refresh_due_notifications', array['uuid'], 'RPC individual de prazos existe');
 select has_function('public', 'refresh_due_notifications_all', array[]::text[], 'RPC de processamento global existe');

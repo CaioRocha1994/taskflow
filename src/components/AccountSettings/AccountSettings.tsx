@@ -14,6 +14,19 @@ interface AccountSettingsProps {
   onChanged: () => void;
 }
 
+const NOTIFICATION_EVENTS = [
+  ["assignment", "Nova atribuição"],
+  ["task_updated", "Alteração importante"],
+  ["comment", "Novo comentário"],
+  ["mention", "Menção em comentário"],
+  ["due_soon", "Prazo próximo"],
+  ["overdue", "Tarefa atrasada"],
+  ["project_invite", "Convite de projeto"],
+] as const;
+
+type NotificationEvent = typeof NOTIFICATION_EVENTS[number][0];
+interface ChannelPreference { inApp: boolean; email: boolean }
+
 export function AccountSettings({ isOpen, currentName, email, onClose, onChanged }: AccountSettingsProps) {
   const { preferences, error: preferencesError, updatePreferences, toggleTheme, setBrowserNotificationsEnabled } = useUserPreferences();
   const [fullName, setFullName] = useState(currentName);
@@ -22,6 +35,9 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busyKey, setBusyKey] = useState("");
+  const [channelPreferences, setChannelPreferences] = useState<Record<NotificationEvent, ChannelPreference>>(() => Object.fromEntries(
+    NOTIFICATION_EVENTS.map(([eventType]) => [eventType, { inApp: true, email: false }]),
+  ) as Record<NotificationEvent, ChannelPreference>);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -37,6 +53,28 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, currentName, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    async function loadChannelPreferences() {
+      const { data, error: queryError } = await getSupabase().from("notification_preferences")
+        .select("event_type, in_app_enabled, email_enabled");
+      if (cancelled) return;
+      if (queryError) { setError(queryError.message); return; }
+      setChannelPreferences((current) => {
+        const next = { ...current };
+        for (const row of data ?? []) {
+          if (NOTIFICATION_EVENTS.some(([eventType]) => eventType === row.event_type)) {
+            next[row.event_type as NotificationEvent] = { inApp: row.in_app_enabled, email: row.email_enabled };
+          }
+        }
+        return next;
+      });
+    }
+    void loadChannelPreferences();
+    return () => { cancelled = true; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -107,6 +145,19 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
     }
   }
 
+  async function toggleChannel(eventType: NotificationEvent, channel: keyof ChannelPreference) {
+    const nextValue = !channelPreferences[eventType][channel];
+    setBusyKey(`channel-${eventType}-${channel}`);
+    setError("");
+    const payload = channel === "inApp" ? { in_app_enabled: nextValue } : { email_enabled: nextValue };
+    const { error: updateError } = await getSupabase().from("notification_preferences")
+      .update(payload).eq("event_type", eventType);
+    setBusyKey("");
+    if (updateError) { setError(updateError.message); return; }
+    setChannelPreferences((current) => ({ ...current, [eventType]: { ...current[eventType], [channel]: nextValue } }));
+    setMessage("Preferência de notificação atualizada.");
+  }
+
   return (
     <div className="account-settings__overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="account-settings" role="dialog" aria-modal="true" aria-labelledby="account-settings-title">
@@ -169,6 +220,17 @@ export function AccountSettings({ isOpen, currentName, email, onClose, onChanged
               <option value={1440}>1 dia</option>
             </select>
           </label>
+
+          <div className="account-settings__notification-matrix">
+            <header><span><strong>Avisos por evento</strong><small>Escolha onde deseja receber cada tipo</small></span><span><b>App</b><b>E-mail</b></span></header>
+            {NOTIFICATION_EVENTS.map(([eventType, label]) => (
+              <div key={eventType}>
+                <span>{label}</span>
+                <button type="button" role="switch" aria-label={`${label} no aplicativo`} aria-checked={channelPreferences[eventType].inApp} className={`account-settings__switch${channelPreferences[eventType].inApp ? " account-settings__switch--active" : ""}`} disabled={busyKey.startsWith(`channel-${eventType}`)} onClick={() => void toggleChannel(eventType, "inApp")}><span /></button>
+                <button type="button" role="switch" aria-label={`${label} por e-mail`} aria-checked={channelPreferences[eventType].email} className={`account-settings__switch${channelPreferences[eventType].email ? " account-settings__switch--active" : ""}`} disabled={busyKey.startsWith(`channel-${eventType}`)} onClick={() => void toggleChannel(eventType, "email")}><span /></button>
+              </div>
+            ))}
+          </div>
         </section>
 
         <form onSubmit={updatePassword}>

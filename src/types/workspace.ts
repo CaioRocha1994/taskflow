@@ -12,9 +12,31 @@ export interface Membership {
   organization: Organization;
 }
 
+export type ProjectStatus = "active" | "inactive";
+
+export interface Project {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string;
+  status: ProjectStatus;
+  color: string;
+  icon: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ProjectMembership {
+  projectId: string;
+  organizationId: string;
+  role: MembershipRole;
+  project: Project;
+}
+
 export interface Team {
   id: string;
   organizationId: string;
+  projectId: string;
   name: string;
   description: string;
 }
@@ -26,4 +48,3 @@ export interface WorkspaceMember {
   email: string;
   teamIds: string[];
 }
-

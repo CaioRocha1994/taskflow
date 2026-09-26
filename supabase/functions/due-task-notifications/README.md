@@ -1,6 +1,6 @@
-# Alertas de prazo por e-mail
+# E-mails transacionais do TaskFlow
 
-Esta Edge Function cria notificações de prazo para todos os responsáveis e envia a fila por meio da API transacional da Brevo. Ela deve ser executada a cada minuto pelo Supabase Cron.
+Esta Edge Function cria os alertas de prazo e processa a fila transacional de atribuições, alterações importantes, comentários, menções, prazos, atrasos e convites de projeto por meio da API da Brevo. A fila usa deduplicação, claim atômico, até três tentativas e backoff. Execute a função a cada minuto pelo Supabase Cron.
 
 Secrets obrigatórios no projeto Supabase:
 

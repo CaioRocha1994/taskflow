@@ -1,6 +1,6 @@
 begin;
 
-select plan(28);
+select plan(33);
 
 select is(
   (
@@ -12,11 +12,12 @@ select is(
         'profiles', 'organizations', 'organization_members', 'teams',
         'team_members', 'tasks', 'task_activity', 'invitations',
         'task_comments', 'task_attachments', 'notifications',
-        'user_preferences', 'tags', 'task_tags'
+        'user_preferences', 'tags', 'task_tags', 'projects', 'project_members',
+        'notification_preferences', 'notification_deliveries'
       ])
       and c.relrowsecurity
   ),
-  14,
+  18,
   'RLS está habilitado em todas as tabelas expostas'
 );
 
@@ -32,6 +33,15 @@ select policies_are('public', 'organization_members', array[
   'organization_members_select', 'organization_members_insert',
   'organization_members_update', 'organization_members_delete'
 ], 'Membros da empresa possuem somente as políticas esperadas');
+
+select policies_are('public', 'projects', array[
+  'projects_select', 'projects_insert', 'projects_update'
+], 'Projetos possuem políticas próprias');
+
+select policies_are('public', 'project_members', array[
+  'project_members_select', 'project_members_insert',
+  'project_members_update', 'project_members_delete'
+], 'Membros do projeto possuem papéis isolados');
 
 select policies_are('public', 'teams', array[
   'teams_select', 'teams_insert', 'teams_update', 'teams_delete'
@@ -70,9 +80,17 @@ select policies_are('public', 'user_preferences', array[
   'user_preferences_select', 'user_preferences_insert', 'user_preferences_update'
 ], 'Preferências são privadas por usuário');
 
+select policies_are('public', 'notification_preferences', array[
+  'notification_preferences_select', 'notification_preferences_insert', 'notification_preferences_update'
+], 'Preferências de canais são privadas por usuário');
+
+select policies_are('public', 'notification_deliveries', array[
+  'notification_deliveries_select'
+], 'Entregas de e-mail são visíveis apenas para administradores do projeto');
+
 select policies_are('public', 'tags', array[
   'tags_select', 'tags_insert', 'tags_update', 'tags_delete'
-], 'Tags são isoladas por empresa');
+], 'Tags são isoladas por projeto');
 
 select policies_are('public', 'task_tags', array[
   'task_tags_select', 'task_tags_insert', 'task_tags_delete'
@@ -107,6 +125,12 @@ select function_privs_are(
   'public', 'create_organization', array['text', 'text'],
   'authenticated', array['EXECUTE'],
   'Usuários autenticados podem criar empresas'
+);
+
+select function_privs_are(
+  'public', 'create_project', array['uuid', 'text', 'text', 'text', 'text'],
+  'authenticated', array['EXECUTE'],
+  'Administradores autenticados podem criar projetos'
 );
 
 select function_privs_are(

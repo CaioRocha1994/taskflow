@@ -156,6 +156,13 @@
   font-size: 0.8rem;
 }
 
+.notifications-menu__item em {
+  color: #f87171;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .notifications-menu__item small {
   overflow: hidden;
   color: var(--app-text-muted);

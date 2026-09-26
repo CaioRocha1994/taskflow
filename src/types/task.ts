@@ -13,6 +13,7 @@ export type TaskPriority =
 export interface Task {
   id: string;
   organizationId: string;
+  projectId: string;
   teamId: string;
   teamName: string;
   assigneeId?: string;

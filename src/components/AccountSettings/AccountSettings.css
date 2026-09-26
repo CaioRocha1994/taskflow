@@ -275,6 +275,61 @@
   transform: translateX(20px);
 }
 
+.account-settings__notification-matrix {
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+}
+
+.account-settings__notification-matrix > header,
+.account-settings__notification-matrix > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px 46px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.account-settings__notification-matrix > header {
+  background: var(--app-surface-raised);
+}
+
+.account-settings__notification-matrix > header > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-settings__notification-matrix > header > span:last-child {
+  display: contents;
+}
+
+.account-settings__notification-matrix > header b {
+  color: var(--app-text-muted);
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.account-settings__notification-matrix > header small {
+  color: var(--app-text-muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.account-settings__notification-matrix > div + div {
+  border-top: 1px solid var(--app-border-subtle);
+}
+
+.account-settings__notification-matrix > div > span {
+  color: var(--app-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.account-settings__notification-matrix .account-settings__switch {
+  transform: scale(0.82);
+}
+
 @media (max-width: 520px) {
   .account-settings__overlay { padding: 8px; }
   .account-settings { max-height: 96vh; padding: 20px; }

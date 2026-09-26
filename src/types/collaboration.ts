@@ -20,14 +20,18 @@ export interface TaskAttachment {
 
 export type NotificationType =
   | "assignment"
+  | "task_updated"
   | "comment"
+  | "mention"
   | "due_today"
   | "due_tomorrow"
   | "due_soon"
-  | "overdue";
+  | "overdue"
+  | "project_invite";
 
 export interface WorkspaceNotification {
   id: string;
+  projectId: string;
   taskId?: string;
   type: NotificationType;
   title: string;

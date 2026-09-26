@@ -8,6 +8,7 @@ import { Filters } from "./components/Filters/Filters";
 import { Header } from "./components/Header/Header";
 import { KanbanBoard } from "./components/KanbanBoard/KanbanBoard";
 import { TaskFlowLandingPage } from "./components/Marketing/TaskFlowLandingPage";
+import { Projects } from "./components/Projects/Projects";
 import { TaskDetailsModal } from "./components/TaskDetailsModal/TaskDetailsModal";
 import { TaskModal } from "./components/TaskModal/TaskModal";
 import { WorkspaceSettings } from "./components/WorkspaceSettings/WorkspaceSettings";
@@ -54,7 +55,7 @@ function AuthenticatedApp({ session, onSignOut }: { session: Session; onSignOut:
   if (workspace.memberships.length === 0) {
     return <Onboarding onComplete={workspace.refresh} />;
   }
-  if (!workspace.activeMembership) return <LoadingScreen />;
+  if (!workspace.activeMembership || !workspace.activeProjectMembership) return <LoadingScreen />;
 
   return (
     <TaskFlowWorkspace
@@ -80,13 +81,16 @@ function TaskFlowWorkspace({
   onSignOut: () => Promise<void>;
 }) {
   const membership = workspace.activeMembership!;
-  const canManage = membership.role === "owner" || membership.role === "admin";
+  const projectMembership = workspace.activeProjectMembership!;
+  const canManage = projectMembership.role === "owner" || projectMembership.role === "admin";
+  const canCreateProject = true;
   const taskStore = useTasks(
     membership.organizationId,
+    projectMembership.projectId,
     workspace.teams,
     workspace.members,
   );
-  const tagStore = useTags(membership.organizationId);
+  const tagStore = useTags(membership.organizationId, projectMembership.projectId);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -97,7 +101,8 @@ function TaskFlowWorkspace({
   const [taskInDetails, setTaskInDetails] = useState<Task | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"board" | "dashboard">("board");
+  const [activeView, setActiveView] = useState<"board" | "dashboard" | "projects">("board");
+  const [pendingTaskId, setPendingTaskId] = useState(() => new URLSearchParams(window.location.search).get("task") ?? "");
   const [operationError, setOperationError] = useState(inviteError);
 
   const filteredTasks = useMemo(() => {
@@ -133,29 +138,42 @@ function TaskFlowWorkspace({
 
   const userName = session.user.user_metadata.full_name || session.user.email || "Usuário";
 
+  useEffect(() => {
+    if (!pendingTaskId || taskStore.isLoading) return;
+    const task = taskStore.tasks.find((item) => item.id === pendingTaskId);
+    if (task) setTaskInDetails(task);
+    else setOperationError("A tarefa desta notificação não está mais disponível.");
+    setPendingTaskId("");
+  }, [pendingTaskId, taskStore.isLoading, taskStore.tasks]);
+
   return (
     <main>
       <Header
         totalTasks={taskStore.taskCounters.total}
         completedTasks={taskStore.taskCounters.done}
         companyName={membership.organization.name}
+        projectName={projectMembership.project.name}
         userName={userName}
-        role={ROLE_LABELS[membership.role]}
+        role={ROLE_LABELS[projectMembership.role]}
         memberships={workspace.memberships}
+        projectMemberships={workspace.projectMemberships}
         activeOrganizationId={workspace.activeOrganizationId}
+        activeProjectId={workspace.activeProjectId}
         currentUserId={session.user.id}
         isDashboardOpen={activeView === "dashboard"}
+        isProjectsOpen={activeView === "projects"}
         canManage={canManage}
         onCreateTask={() => openCreateModal()}
         onSettings={() => setIsSettingsOpen(true)}
         onAccountSettings={() => setIsAccountSettingsOpen(true)}
-        onToggleDashboard={() => setActiveView((current) => current === "board" ? "dashboard" : "board")}
-        onOpenNotificationTask={(taskId) => {
-          const task = taskStore.tasks.find((item) => item.id === taskId);
-          if (task) setTaskInDetails(task);
-          else setOperationError("A tarefa desta notificação não está mais disponível.");
+        onToggleDashboard={() => setActiveView((current) => current === "dashboard" ? "board" : "dashboard")}
+        onToggleProjects={() => setActiveView((current) => current === "projects" ? "board" : "projects")}
+        onOpenNotificationTask={(projectId, taskId) => {
+          setPendingTaskId(taskId);
+          if (projectId !== workspace.activeProjectId) workspace.setActiveProjectId(projectId);
         }}
         onOrganizationChange={workspace.setActiveOrganizationId}
+        onProjectChange={(projectId) => { workspace.setActiveProjectId(projectId); setActiveView("board"); }}
         onSignOut={() => void onSignOut()}
       />
 
@@ -198,12 +216,23 @@ function TaskFlowWorkspace({
             tasks={taskStore.tasks}
             teams={workspace.teams}
             members={workspace.members}
-            companyName={membership.organization.name}
+            companyName={`${membership.organization.name} · ${projectMembership.project.name}`}
             currentUserId={session.user.id}
             canManage={canManage}
             onOpenTask={setTaskInDetails}
           />
         )
+      )}
+
+      {activeView === "projects" && (
+        <Projects
+          memberships={workspace.projectMemberships}
+          organizationId={membership.organizationId}
+          activeProjectId={workspace.activeProjectId}
+          canCreate={canCreateProject}
+          onSelect={(projectId) => { workspace.setActiveProjectId(projectId); setActiveView("board"); }}
+          onCreated={(projectId) => { workspace.setActiveProjectId(projectId); workspace.refresh(); setActiveView("board"); }}
+        />
       )}
 
       <TaskModal
@@ -221,7 +250,7 @@ function TaskFlowWorkspace({
       />
       <DeleteTaskModal isOpen={Boolean(taskPendingDeletion)} task={taskPendingDeletion} onClose={() => setTaskPendingDeletion(null)} onConfirm={(id) => void deleteTask(id)} />
       <TaskDetailsModal isOpen={Boolean(taskInDetails)} task={taskInDetails} currentUserId={session.user.id} canManage={canManage} onClose={() => setTaskInDetails(null)} onEdit={openEditModal} onDelete={(task) => { setTaskInDetails(null); setTaskPendingDeletion(task); }} />
-      <WorkspaceSettings isOpen={isSettingsOpen} organizationId={membership.organizationId} currentUserId={session.user.id} teams={workspace.teams} members={workspace.members} onClose={() => setIsSettingsOpen(false)} onChanged={workspace.refresh} />
+      <WorkspaceSettings isOpen={isSettingsOpen} organizationId={membership.organizationId} projectId={projectMembership.projectId} projectName={projectMembership.project.name} currentUserId={session.user.id} teams={workspace.teams} members={workspace.members} onClose={() => setIsSettingsOpen(false)} onChanged={workspace.refresh} />
       <AccountSettings
         isOpen={isAccountSettingsOpen}
         currentName={userName}

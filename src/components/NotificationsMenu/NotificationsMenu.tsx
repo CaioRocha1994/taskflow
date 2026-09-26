@@ -10,12 +10,15 @@ import {
 } from "react-icons/fi";
 import { useNotifications } from "../../hooks/useNotifications";
 import type { NotificationType } from "../../types/collaboration";
+import type { ProjectMembership } from "../../types/workspace";
 import "./NotificationsMenu.css";
 
 interface NotificationsMenuProps {
   organizationId: string;
+  projectId: string;
+  projects: ProjectMembership[];
   userId: string;
-  onOpenTask: (taskId: string) => void;
+  onOpenTask: (projectId: string, taskId: string) => void;
 }
 
 function formatRelativeDate(date: string) {
@@ -31,17 +34,17 @@ function formatRelativeDate(date: string) {
 
 function NotificationIcon({ type }: { type: NotificationType }) {
   if (type === "assignment") return <FiUserCheck />;
-  if (type === "comment") return <FiMessageSquare />;
+  if (type === "comment" || type === "mention") return <FiMessageSquare />;
   if (type === "overdue") return <FiAlertTriangle />;
   return <FiClock />;
 }
 
-export function NotificationsMenu({ organizationId, userId, onOpenTask }: NotificationsMenuProps) {
+export function NotificationsMenu({ organizationId, projectId, projects, userId, onOpenTask }: NotificationsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const store = useNotifications(organizationId, userId);
+  const store = useNotifications(organizationId, projectId, userId);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,7 +82,10 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
       setMutationError("Não foi possível atualizar a notificação.");
     }
     setIsOpen(false);
-    if (taskId) onOpenTask(taskId);
+    if (taskId) {
+      const notification = store.notifications.find((item) => item.id === notificationId);
+      onOpenTask(notification?.projectId ?? projectId, taskId);
+    }
   }
 
   async function markAllAsRead() {
@@ -164,6 +170,7 @@ export function NotificationsMenu({ organizationId, userId, onOpenTask }: Notifi
                 </span>
                 <span>
                   <strong>{notification.title}</strong>
+                  <em>{projects.find((item) => item.projectId === notification.projectId)?.project.name ?? "Projeto"}</em>
                   <small>{notification.body}</small>
                   <time dateTime={notification.createdAt}>{formatRelativeDate(notification.createdAt)}</time>
                 </span>

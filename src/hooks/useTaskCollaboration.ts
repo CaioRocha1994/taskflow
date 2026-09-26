@@ -155,6 +155,7 @@ export function useTaskCollaboration(
     try {
       const { error: mutationError } = await getSupabase().from("task_comments").insert({
         organization_id: task.organizationId,
+        project_id: task.projectId,
         task_id: task.id,
         author_id: currentUserId,
         body: body.trim(),
@@ -201,6 +202,7 @@ export function useTaskCollaboration(
       const { error: metadataError } = await client.from("task_attachments").insert({
         id: attachmentId,
         organization_id: task.organizationId,
+        project_id: task.projectId,
         task_id: task.id,
         uploaded_by: currentUserId,
         storage_path: storagePath,
