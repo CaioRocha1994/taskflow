@@ -58,6 +58,7 @@ export function Header({
 }: HeaderProps) {
   const completionRate = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
   const { preferences, toggleTheme } = useUserPreferences();
+  const activeProjects = projectMemberships.filter(({ project }) => project.status === "active");
 
   return (
     <header className="taskflow-header">
@@ -79,11 +80,15 @@ export function Header({
               ))}
             </select>
           )}
-          <select className="taskflow-header__organization taskflow-header__organization--desktop" value={activeProjectId} onChange={(event) => onProjectChange(event.target.value)} aria-label="Selecionar projeto">
-            {projectMemberships.filter(({ project }) => project.status === "active").map(({ project }) => (
-              <option key={project.id} value={project.id}>{project.name}</option>
-            ))}
-          </select>
+          {activeProjects.length > 1 ? (
+            <select className="taskflow-header__organization taskflow-header__organization--desktop" value={activeProjectId} onChange={(event) => onProjectChange(event.target.value)} aria-label="Selecionar projeto">
+              {activeProjects.map(({ project }) => <option key={project.id} value={project.id}>{project.name}</option>)}
+            </select>
+          ) : (
+            <div className="taskflow-header__organization taskflow-header__organization--desktop taskflow-header__project-label" title={projectName}>
+              <FiFolder aria-hidden="true" /><span>{projectName}</span>
+            </div>
+          )}
           <button type="button" className="taskflow-header__button taskflow-header__button--primary taskflow-header__new-task" onClick={onCreateTask}>
             <FiPlus size={20} /> Nova tarefa
           </button>

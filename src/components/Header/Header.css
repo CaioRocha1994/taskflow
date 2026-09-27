@@ -246,10 +246,36 @@
 }
 
 .taskflow-header__organization {
-  min-height: 44px;
+  height: 44px;
+  max-width: 220px;
   padding: 0 12px;
   border: 1px solid var(--app-border);
   border-radius: 12px;
   color: var(--app-text-secondary);
   background: var(--app-surface-translucent);
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+select.taskflow-header__organization {
+  min-width: 160px;
+  padding-right: 34px;
+}
+
+.taskflow-header__project-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.taskflow-header__project-label svg {
+  width: 16px;
+  min-width: 16px;
+  color: #60a5fa;
+}
+
+.taskflow-header__project-label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

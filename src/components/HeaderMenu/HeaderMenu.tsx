@@ -132,12 +132,19 @@ export function HeaderMenu({
             <span><strong>Projetos</strong><small>Trocar ou criar um projeto</small></span>
           </button>
 
-          <label className="header-menu__organization">
-            <span><FiFolder /> Projeto</span>
-            <select value={activeProjectId} aria-label="Selecionar projeto" onChange={(event) => { setIsOpen(false); onProjectChange(event.target.value); }}>
-              {projectMemberships.filter(({ project }) => project.status === "active").map(({ project }) => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </select>
-          </label>
+          {projectMemberships.filter(({ project }) => project.status === "active").length > 1 ? (
+            <label className="header-menu__organization">
+              <span><FiFolder /> Projeto</span>
+              <select value={activeProjectId} aria-label="Selecionar projeto" onChange={(event) => { setIsOpen(false); onProjectChange(event.target.value); }}>
+                {projectMemberships.filter(({ project }) => project.status === "active").map(({ project }) => <option key={project.id} value={project.id}>{project.name}</option>)}
+              </select>
+            </label>
+          ) : (
+            <div className="header-menu__organization header-menu__project-label">
+              <span><FiFolder /> Projeto</span>
+              <strong>{projectMemberships.find(({ project }) => project.id === activeProjectId)?.project.name ?? "Projeto"}</strong>
+            </div>
+          )}
 
           {memberships.length > 1 && (
             <label className="header-menu__organization">
