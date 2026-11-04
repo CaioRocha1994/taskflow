@@ -14,6 +14,15 @@ export function getAuthErrorMessage(
   const normalized = message.toLowerCase();
 
   if (
+    normalized.includes("failed to fetch")
+    || normalized.includes("fetch failed")
+    || normalized.includes("network request failed")
+    || normalized.includes("networkerror")
+  ) {
+    return "O serviço de acesso está temporariamente indisponível. Aguarde alguns minutos e tente novamente.";
+  }
+
+  if (
     (error.status ?? 0) >= 500
     || normalized.includes("error sending")
     || normalized.includes("unexpected_failure")
