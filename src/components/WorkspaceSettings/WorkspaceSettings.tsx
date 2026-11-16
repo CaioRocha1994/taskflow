@@ -166,39 +166,20 @@ export function WorkspaceSettings({
     const client = getSupabase();
     const normalizedEmail = inviteEmail.trim().toLowerCase();
 
-    const { error: cleanupError } = await client
-      .from("invitations")
-      .delete()
-      .eq("organization_id", organizationId)
-      .eq("project_id", projectId)
-      .eq("email", normalizedEmail)
-      .is("accepted_at", null);
-
-    if (cleanupError) {
-      setBusyKey("");
-      setMessage(cleanupError.message);
-      return;
-    }
-
-    const { data, error } = await client
-      .from("invitations")
-      .insert({
-        organization_id: organizationId,
-        project_id: projectId,
-        team_id: inviteTeamId || null,
-        email: normalizedEmail,
-        role: inviteRole,
-        invited_by: currentUserId,
-      })
-      .select("token")
-      .single();
+    const { data: token, error } = await client.rpc("create_project_invitation", {
+      p_organization_id: organizationId,
+      p_project_id: projectId,
+      p_team_id: inviteTeamId || null,
+      p_email: normalizedEmail,
+      p_role: inviteRole,
+    });
     if (error) {
       setBusyKey("");
       setMessage(error.message);
       return;
     }
 
-    const link = invitationUrl(data.token);
+    const link = invitationUrl(token as string);
     setInviteLink(link);
 
     setBusyKey("");

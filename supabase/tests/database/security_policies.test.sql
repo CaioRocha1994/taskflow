@@ -1,6 +1,6 @@
 begin;
 
-select plan(33);
+select plan(36);
 
 select is(
   (
@@ -121,6 +121,11 @@ select ok(
   'Aceite de convite executa como security definer'
 );
 
+select ok(
+  (select p.prosecdef from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'create_project_invitation'),
+  'Criação de convite executa como security definer'
+);
+
 select function_privs_are(
   'public', 'create_organization', array['text', 'text'],
   'authenticated', array['EXECUTE'],
@@ -137,6 +142,18 @@ select function_privs_are(
   'public', 'accept_invitation', array['uuid'],
   'authenticated', array['EXECUTE'],
   'Usuários autenticados podem aceitar convites'
+);
+
+select function_privs_are(
+  'public', 'create_project_invitation', array['uuid', 'uuid', 'uuid', 'text', 'membership_role'],
+  'authenticated', array['EXECUTE'],
+  'Administradores autenticados podem criar convites'
+);
+
+select function_privs_are(
+  'public', 'create_project_invitation', array['uuid', 'uuid', 'uuid', 'text', 'membership_role'],
+  'anon', array[]::text[],
+  'Usuários anônimos não podem criar convites'
 );
 
 select * from finish();
